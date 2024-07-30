@@ -1,7 +1,7 @@
 syntax = "proto3";
-package post;
+package gen;
 
-option go_package = "antibomberman/mego/post";
+option go_package = "antibomberman/mego/gen";
 import "google/protobuf/timestamp.proto";
 service PostSrv{
   rpc Index(IndexRequest) returns (IndexResponse);

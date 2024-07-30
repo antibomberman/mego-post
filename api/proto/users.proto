@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package auth;
-option go_package = "proto/auth";
+package gen;
+option go_package = "antibomberman/mego/gen";
 
 // CreateUserRequest specifies a request to create a new user
 message CreateUserRequest {
