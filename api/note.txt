@@ -1,0 +1,26 @@
+ "users": [
+    {
+      "authType": "string",
+      "details": {
+        "avatar": "string",
+        "email": "string",
+        "firstName": "string",
+        "groups": [
+          "string"
+        ],
+        "isGuest": true,
+        "lastName": "string",
+        "middleName": "string",
+        "phone": "string",
+        "roles": [
+          "string"
+        ]
+      },
+      "id": "string",
+      "status": "string",
+      "type": "client",
+      "username": "string"
+    }
+  ]
+
+  https://app.clickup.com/9018316457/docs/8crh5n9-418/8crh5n9-2438

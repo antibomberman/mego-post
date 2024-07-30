@@ -1,0 +1,91 @@
+syntax = "proto3";
+package post;
+
+option go_package = "antibomberman/mego/post";
+import "google/protobuf/timestamp.proto";
+service PostSrv{
+  rpc Index(IndexRequest) returns (IndexResponse);
+  //  rpc CreatePost(PostRequest) returns (PostResponse);
+  //  rpc UpdatePost(PostRequest) returns (PostResponse);
+  //  rpc DeletePost(PostRequest) returns (PostResponse);
+  //  rpc HidePost(PostRequest) returns (PostResponse);
+}
+
+message IndexRequest{
+  int32 page_size = 1;
+  string page_token = 2;
+  string search = 3;
+  SortOrder sort_order = 4;
+  google.protobuf.Timestamp  date_from = 5;
+  google.protobuf.Timestamp  date_to = 6;
+}
+message IndexResponse{
+  repeated Post posts = 1;
+  string next_page_token = 2;
+}
+
+
+message Post {
+  string id = 1;
+  string title = 2;
+  Author author = 3;
+
+  int32 like_count = 4;
+  int32 comment_count = 5;
+  int32 view_count = 6;
+  int32 repost_count = 7;
+
+
+  MediaContents contents = 8;
+
+  PostType type = 9;
+
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp deleted_at = 12;
+}
+
+
+message Author {
+  string id = 1;
+  string username = 2;
+  string avatar = 3;
+}
+
+
+message PostRequest{
+  string id = 1;
+}
+
+
+
+
+message MediaContents {
+  string title = 1;
+  string content = 2;
+  repeated MediaContentFiles files = 3;
+}
+message MediaContentFiles{
+  string url = 1;
+  MediaType type = 2;
+}
+
+
+enum MediaType {
+  IMAGE = 0;
+  VIDEO = 1;
+}
+
+enum PostType {
+  TOURIST = 0;
+  GUIDE = 1;
+  OWNER = 2;
+}
+
+
+enum SortOrder {
+  NEWEST = 0;
+  OLDEST = 1;
+  MOST_LIKED = 2;
+  MOST_COMMENTED = 3;
+}

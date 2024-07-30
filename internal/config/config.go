@@ -1,6 +1,9 @@
 package config
 
-import "log"
+import (
+	"github.com/ilyakaznacheev/cleanenv"
+	"log"
+)
 
 type Config struct {
 	DatabaseURL string `yaml:"database_url" required:"true"`

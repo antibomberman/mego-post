@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: "post"
       POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "adgjmp96"
+      POSTGRES_PASSWORD: "password"
     volumes:
       - ./tmp/postgres:/var/lib/postgresql/data
     ports:
