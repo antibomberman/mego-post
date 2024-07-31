@@ -2,6 +2,7 @@ version: "3.9"
 services:
   postgres:
     image: postgres:14.8-alpine3.18
+    container_name: mego-post-db
     environment:
       POSTGRES_DB: "post"
       POSTGRES_USER: "user"
@@ -10,32 +11,18 @@ services:
       - ./tmp/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-#  minio:
-#    image: minio/minio
-#    container_name: minio
-#    restart: always
-#    ports:
-#      - "9000:9000"
-#    environment:
-#      MINIO_ACCESS_KEY: your_access_key_here
-#      MINIO_SECRET_KEY: your_secret_key_here
-#    volumes:
-#      - ./tmp/minio:/data
-#      - ./tmp/minio_config:/root/.minio
-#    command: server /data
-
-#  redis:
-#    image: redis:6.2.6-alpine
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - ./tmp/redis:/data
-#  golang-post:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    container_name: my-golang-post
-#    depends_on:
-#      - postgres
-#    ports:
-#      - "8080:8080"
+  redis:
+    image: redis:6.2.6-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./tmp/redis:/data
+  golang-post:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mego-post-redis
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"

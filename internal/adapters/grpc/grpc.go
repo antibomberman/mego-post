@@ -24,7 +24,6 @@ func Register(gRPC *grpc.Server, cfg *config.Config, service services.PostServic
 	})
 }
 func (s serverAPI) Index(ctx context.Context, req *postGrpc.IndexRequest) (*postGrpc.IndexResponse, error) {
-
 	posts, nextPageToken, err := s.service.Index(int(req.PageSize), req.PageToken, req.Search)
 	if err != nil {
 		log.Printf("Error getting posts: %v", err)
