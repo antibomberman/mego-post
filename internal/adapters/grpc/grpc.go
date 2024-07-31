@@ -12,34 +12,34 @@ import (
 )
 
 type serverAPI struct {
-	postGrpc.UnimplementedPostSrvServer
+	postGrpc.UnimplementedPostServiceServer
 	service services.PostService
 	cfg     *config.Config
 }
 
 func Register(gRPC *grpc.Server, cfg *config.Config, service services.PostService) {
-	postGrpc.RegisterPostSrvServer(gRPC, &serverAPI{
+	postGrpc.RegisterPostServiceServer(gRPC, &serverAPI{
 		service: service,
 		cfg:     cfg,
 	})
 }
-func (s serverAPI) Index(ctx context.Context, req *postGrpc.IndexRequest) (*postGrpc.IndexResponse, error) {
+func (s serverAPI) Find(ctx context.Context, req *postGrpc.FindPostRequest) (*postGrpc.FindPostResponse, error) {
 	posts, nextPageToken, err := s.service.Index(int(req.PageSize), req.PageToken, req.Search)
 	if err != nil {
 		log.Printf("Error getting posts: %v", err)
 		return nil, status.Error(codes.Internal, "Failed to retrieve posts")
 	}
 
-	postResponses := make([]*postGrpc.Post, len(posts))
+	postResponses := make([]*postGrpc.PostDetail, len(posts))
 	for i, post := range posts {
-		postResponses[i] = &postGrpc.Post{
+		postResponses[i] = &postGrpc.PostDetail{
 			//Id:        post.Id,
 			Title: post.Title,
 			//CreatedAt: post.CreatedAt.Unix(),
 		}
 	}
 
-	return &postGrpc.IndexResponse{
+	return &postGrpc.FindPostResponse{
 		Posts:         postResponses,
 		NextPageToken: nextPageToken,
 	}, nil
