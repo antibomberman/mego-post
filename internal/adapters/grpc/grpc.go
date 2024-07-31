@@ -1,10 +1,10 @@
 package grpc
 
 import (
-	postGrpc "antibomberman/mego-post/gen"
 	"antibomberman/mego-post/internal/config"
 	"antibomberman/mego-post/internal/services"
 	"context"
+	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
