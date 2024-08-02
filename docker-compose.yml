@@ -2,27 +2,40 @@ version: "3.9"
 services:
   postgres:
     image: postgres:14.8-alpine3.18
-    container_name: mego-post-db
+    container_name: mego_post_db
     environment:
-      POSTGRES_DB: "post"
-      POSTGRES_USER: "user"
-      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - ./tmp/postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
+    networks:
+     - mego_post_network
   redis:
+    container_name: mego_post_redis
     image: redis:6.2.6-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - ./tmp/redis:/data
-  golang-post:
+    networks:
+      - mego_post_network
+
+  mego_post:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mego-post-redis
+    container_name: mego-user
     depends_on:
-      - postgres
+      - mysql
+      - redis
     ports:
-      - "8080:8080"
+      - "${POST_SERVICE_SERVER_PORT}:${POST_SERVICE_SERVER_PORT}"
+    networks:
+      - mego_post_network
+
+networks:
+  mego_post_network:
+    driver: bridge

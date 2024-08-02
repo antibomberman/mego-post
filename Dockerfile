@@ -5,4 +5,4 @@ COPY . .
 RUN go mod tidy
 
 RUN go build -o post cmd/post/main.go
-CMD ["./app"]
+CMD ["./post"]
