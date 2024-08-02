@@ -1,3 +1,0 @@
-database_url: "postgresql://user:password@localhost:5432/post?sslmode=disable"
-jwt_secret: "secret"
-server_port: "8080"

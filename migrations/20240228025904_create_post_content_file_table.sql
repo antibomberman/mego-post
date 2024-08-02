@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS post_content_files
     filename        TEXT,
     size            BIGINT,
     url             TEXT,
-    type            int
+    type            VARCHAR
 
 );
 -- +goose StatementEnd

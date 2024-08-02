@@ -5,13 +5,12 @@ CREATE TABLE IF NOT EXISTS posts
     id         SERIAL PRIMARY KEY,
     title      TEXT,
     author_id    INTEGER,
-    type    INTEGER,
+    type    INTEGER default 1,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    deleted_at TIMESTAMP NULL
 );
-INSERT INTO posts (user_id, title) VALUES (1, 'Hello World', 'This is my first post');
 -- +goose StatementEnd
 
 -- +goose Down

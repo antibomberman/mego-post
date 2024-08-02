@@ -27,9 +27,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mego-user
+    container_name: mego-post
     depends_on:
-      - mysql
+      - postgres
       - redis
     ports:
       - "${POST_SERVICE_SERVER_PORT}:${POST_SERVICE_SERVER_PORT}"

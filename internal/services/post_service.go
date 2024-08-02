@@ -7,10 +7,6 @@ import (
 )
 import "antibomberman/mego-post/internal/repositories"
 
-type PostService interface {
-	Index(int, string, string) ([]models.Post, string, error)
-}
-
 type postService struct {
 	postRepository repositories.PostRepository
 }
@@ -19,7 +15,7 @@ func NewPostService(repo repositories.PostRepository) PostService {
 	return &postService{postRepository: repo}
 }
 
-func (p *postService) Index(pageSize int, pageToken string, search string) ([]models.Post, string, error) {
+func (p *postService) Find(pageSize int, pageToken string, search string) ([]models.Post, string, error) {
 	if pageSize == 0 {
 		pageSize = 10
 	}
@@ -31,7 +27,7 @@ func (p *postService) Index(pageSize int, pageToken string, search string) ([]mo
 			log.Printf("Error decoding page token: %v", err)
 		}
 	}
-	posts, err := p.postRepository.Index(startIndex, pageSize+1)
+	posts, err := p.postRepository.Find(startIndex, pageSize+1, "", 0)
 	if err != nil {
 		log.Printf("Error getting posts: %v", err)
 	}
