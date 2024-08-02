@@ -6,13 +6,20 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string `yaml:"database_url" required:"true"`
-	JWTSecret   string `yaml:"jwt_secret" required:"true"`
-	ServerPort  string `yaml:"server_port" required:"true"`
+	DBName     string `env:"DB_NAME" required:"true"`
+	DBUser     string `env:"DB_USER" required:"true"`
+	DBPassword string `env:"DB_PASSWORD" required:"true"`
+	DBHost     string `env:"DB_HOST" required:"true"`
+	DBPort     string `env:"DB_PORT" required:"true"`
+
+	RedisPort string `env:"REDIS_PORT" required:"true"`
+
+	JWTSecret             string `env:"JWT_SECRET" required:"true"`
+	PostServiceServerPort string `env:"POST_SERVICE_SERVER_PORT" required:"true"`
 }
 
 func Load() *Config {
-	path := "./config/local.yaml"
+	path := "./.env"
 	var cfg Config
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		log.Fatalf("failed to read config: %v", err)
