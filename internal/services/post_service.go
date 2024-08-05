@@ -1,10 +1,12 @@
 package services
 
 import (
+	"antibomberman/mego-post/internal/clients"
 	"antibomberman/mego-post/internal/models"
 	"antibomberman/mego-post/pkg/utils"
-	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
-	"google.golang.org/grpc"
+	"context"
+	postPb "github.com/antibomberman/mego-protos/gen/go/post"
+	userPb "github.com/antibomberman/mego-protos/gen/go/user"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 )
@@ -12,13 +14,14 @@ import "antibomberman/mego-post/internal/repositories"
 
 type postService struct {
 	postRepository repositories.PostRepository
+	userClient     *clients.UserClient
 }
 
-func NewPostService(repo repositories.PostRepository, credentials grpc.DialOption) PostService {
-	return &postService{postRepository: repo}
+func NewPostService(repo repositories.PostRepository, client *clients.UserClient) PostService {
+	return &postService{postRepository: repo, userClient: client}
 }
 
-func (p *postService) Find(pageSize int, pageToken string, search string) ([]*postGrpc.PostDetail, string, error) {
+func (p *postService) Find(pageSize int, pageToken string, search string) ([]*postPb.PostDetail, string, error) {
 	if pageSize < 1 {
 		pageSize = 10
 	}
@@ -47,9 +50,9 @@ func (p *postService) Find(pageSize int, pageToken string, search string) ([]*po
 
 }
 
-func (p *postService) BuildPostDetails(posts []models.Post, pageSize, startIndex int) []*postGrpc.PostDetail {
+func (p *postService) BuildPostDetails(posts []models.Post, pageSize, startIndex int) []*postPb.PostDetail {
 
-	var postDetails []*postGrpc.PostDetail
+	var postDetails []*postPb.PostDetail
 	for _, post := range posts {
 		postDetails = append(postDetails, p.BuildPostDetail(post))
 	}
@@ -57,15 +60,13 @@ func (p *postService) BuildPostDetails(posts []models.Post, pageSize, startIndex
 	return postDetails
 }
 
-func (p *postService) BuildPostDetail(post models.Post) *postGrpc.PostDetail {
+func (p *postService) BuildPostDetail(post models.Post) *postPb.PostDetail {
 	mediaContents, _ := p.GetMediaContents(post.Id)
-	return &postGrpc.PostDetail{
-		Id:       post.Id,
-		Title:    post.Title,
-		Contents: mediaContents,
-		Author: &postGrpc.Author{
-			Id: post.AuthorId,
-		},
+	return &postPb.PostDetail{
+		Id:           post.Id,
+		Title:        post.Title,
+		Contents:     mediaContents,
+		Author:       p.BuildPostAuthorDetail(post.AuthorId),
 		CommentCount: 0,
 		LikeCount:    0,
 		RepostCount:  0,
@@ -76,36 +77,54 @@ func (p *postService) BuildPostDetail(post models.Post) *postGrpc.PostDetail {
 	}
 
 }
+func (p *postService) BuildPostAuthorDetail(authorId string) *postPb.Author {
+	log.Printf("Getting user by id %s", authorId)
+	user, err := p.userClient.GetById(context.Background(), &userPb.Id{Id: authorId})
+	if err != nil {
+		log.Printf("Error getting user by id %s: %v", authorId, err)
+		return nil
+	}
+	return &postPb.Author{
+		Id:         user.Id,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName,
+		LastName:   user.LastName,
+		Email:      user.Email,
+		Phone:      user.Phone,
+		Avatar:     user.Avatar,
+	}
 
-func (p *postService) GetMediaContents(postId string) ([]*postGrpc.MediaContents, error) {
+}
+
+func (p *postService) GetMediaContents(postId string) ([]*postPb.MediaContents, error) {
 	contents, err := p.postRepository.GetContents(postId)
 	if err != nil {
 		return nil, err
 	}
 
-	var mediaContents []*postGrpc.MediaContents
+	var mediaContents []*postPb.MediaContents
 	for _, content := range contents {
 		mediaContentFiles, err := p.GetMediaContentFiles(content.Id)
 		if err != nil {
 			log.Printf("Error getting media content files for content %d: %v", content.Id, err)
 			continue
 		}
-		mediaContents = append(mediaContents, &postGrpc.MediaContents{
+		mediaContents = append(mediaContents, &postPb.MediaContents{
 			Files: mediaContentFiles,
 		})
 	}
 	return mediaContents, nil
 }
 
-func (p *postService) GetMediaContentFiles(contentId string) ([]*postGrpc.MediaContentFiles, error) {
+func (p *postService) GetMediaContentFiles(contentId string) ([]*postPb.MediaContentFiles, error) {
 	contentFiles, err := p.postRepository.GetContentFiles(contentId)
 	if err != nil {
 		return nil, err
 	}
 
-	var mediaContentFiles []*postGrpc.MediaContentFiles
+	var mediaContentFiles []*postPb.MediaContentFiles
 	for _, contentFile := range contentFiles {
-		mediaContentFiles = append(mediaContentFiles, &postGrpc.MediaContentFiles{
+		mediaContentFiles = append(mediaContentFiles, &postPb.MediaContentFiles{
 			Url: contentFile.Url,
 		})
 	}

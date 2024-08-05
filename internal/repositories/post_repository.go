@@ -18,8 +18,10 @@ func NewPostRepository(db *sqlx.DB) PostRepository {
 func (r *postRepository) Find(startIndex int, size int, search string, sort int) ([]models.Post, error) {
 	var posts []models.Post
 
-	query := `SELECT id, title, created_at FROM posts WHERE title ILIKE '%` + search + `%'`
-
+	query := `SELECT * FROM posts`
+	if search != "" {
+		query += ` WHERE title LIKE '%` + search + `%'`
+	}
 	switch sort {
 	case 0:
 		query += " ORDER BY created_at DESC"
@@ -109,7 +111,7 @@ func (r *postRepository) GetContents(postId string) ([]models.PostContent, error
 }
 func (r *postRepository) GetContentFiles(postContentId string) ([]models.PostContentFile, error) {
 	var postContentFiles []models.PostContentFile
-	err := r.db.Select(&postContentFiles, "SELECT * FROM post_content_files WHERE post_content_id = $1", postContentId)
+	err := r.db.Select(&postContentFiles, "SELECT filename,url,size,type FROM post_content_files WHERE post_content_id = $1", postContentId)
 	if err != nil {
 		return []models.PostContentFile{}, err
 	}

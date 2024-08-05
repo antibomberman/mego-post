@@ -10,5 +10,6 @@ func DecodePageToken(token string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return strconv.Atoi(string(bytes))
 }
