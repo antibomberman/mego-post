@@ -1,10 +1,8 @@
 package models
 
 type PostContentFile struct {
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	FileName string `json:"filename"`
-	Size     int64  `json:"size"`
-	Url      string `json:"url"`
-	Type     int    `json:"type"`
+	FileName string `db:"file_name" json:"filename"`
+	Size     int64  `db:"size" json:"size"`
+	Url      string `db:"url" json:"url"`
+	Type     int    `db:"type" json:"type"`
 }

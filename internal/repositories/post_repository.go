@@ -15,20 +15,6 @@ func NewPostRepository(db *sqlx.DB) PostRepository {
 	}
 }
 
-func (r *postRepository) Index(startIndex int, size int) ([]models.Post, error) {
-	var posts []models.Post
-
-	err := r.db.Select(&posts, "SELECT id,title,created_at FROM posts OFFSET $1 LIMIT $2", startIndex, size)
-	if err != nil {
-		return nil, err
-	}
-	if len(posts) == 0 {
-		return []models.Post{}, nil
-	}
-
-	return posts, nil
-}
-
 func (r *postRepository) Find(startIndex int, size int, search string, sort int) ([]models.Post, error) {
 	var posts []models.Post
 
@@ -103,4 +89,29 @@ func (r *postRepository) Update(id string, data models.PostUpdate) error {
 
 	return nil
 
+}
+
+func (r *postRepository) Hide(id string) error {
+	return nil
+}
+
+func (r *postRepository) CountByAuthor(authorId string) (int, error) {
+	return 0, nil
+}
+
+func (r *postRepository) GetContents(postId string) ([]models.PostContent, error) {
+	var postContent []models.PostContent
+	err := r.db.Select(&postContent, "SELECT id,title,content FROM post_contents WHERE post_id = $1", postId)
+	if err != nil {
+		return []models.PostContent{}, err
+	}
+	return postContent, nil
+}
+func (r *postRepository) GetContentFiles(postContentId string) ([]models.PostContentFile, error) {
+	var postContentFiles []models.PostContentFile
+	err := r.db.Select(&postContentFiles, "SELECT * FROM post_content_files WHERE post_content_id = $1", postContentId)
+	if err != nil {
+		return []models.PostContentFile{}, err
+	}
+	return postContentFiles, nil
 }

@@ -1,9 +1,9 @@
 package services
 
 import (
-	"antibomberman/mego-post/internal/models"
+	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 )
 
 type PostService interface {
-	Find(int, string, string) ([]models.Post, string, error)
+	Find(int, string, string) ([]*postGrpc.PostDetail, string, error)
 }

@@ -11,4 +11,7 @@ type PostRepository interface {
 	Create(models.PostCreate) (int, error)
 	Delete(string) error
 	Update(string, models.PostUpdate) error
+	CountByAuthor(string) (int, error)
+	GetContents(string) ([]models.PostContent, error)
+	GetContentFiles(string) ([]models.PostContentFile, error)
 }
