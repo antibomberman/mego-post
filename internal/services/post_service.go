@@ -4,6 +4,7 @@ import (
 	"antibomberman/mego-post/internal/models"
 	"antibomberman/mego-post/pkg/utils"
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 )
@@ -13,7 +14,7 @@ type postService struct {
 	postRepository repositories.PostRepository
 }
 
-func NewPostService(repo repositories.PostRepository) PostService {
+func NewPostService(repo repositories.PostRepository, credentials grpc.DialOption) PostService {
 	return &postService{postRepository: repo}
 }
 
