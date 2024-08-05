@@ -1,39 +1,47 @@
 package services
 
 import (
+	"context"
+	pb "github.com/antibomberman/mego-protos/gen/go/storage"
+	"log"
+	"time"
+
 	"antibomberman/mego-post/internal/clients"
 	"antibomberman/mego-post/internal/models"
+	"antibomberman/mego-post/internal/repositories"
 	"antibomberman/mego-post/pkg/utils"
-	"context"
-	postPb "github.com/antibomberman/mego-protos/gen/go/post"
 	userPb "github.com/antibomberman/mego-protos/gen/go/user"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	"log"
 )
-import "antibomberman/mego-post/internal/repositories"
 
 type postService struct {
-	postRepository repositories.PostRepository
-	userClient     *clients.UserClient
+	postRepository            repositories.PostRepository
+	postContentRepository     repositories.PostContentRepository
+	postContentFileRepository repositories.PostContentFileRepository
+	userClient                *clients.UserClient
+	storageClient             *clients.StorageClient
 }
 
-func NewPostService(repo repositories.PostRepository, client *clients.UserClient) PostService {
-	return &postService{postRepository: repo, userClient: client}
+func NewPostService(postRepo repositories.PostRepository, postContentRepo repositories.PostContentRepository, postContentFileRepo repositories.PostContentFileRepository, userClient *clients.UserClient, storageClient *clients.StorageClient) PostService {
+	return &postService{
+		postRepository:            postRepo,
+		postContentRepository:     postContentRepo,
+		postContentFileRepository: postContentFileRepo,
+		userClient:                userClient,
+		storageClient:             storageClient,
+	}
 }
 
-func (p *postService) Find(pageSize int, pageToken string, search string) ([]*postPb.PostDetail, string, error) {
+func (p *postService) Find(pageSize int, pageToken, sort, search string, fromDate, toDate *time.Time) ([]models.PostDetail, string, error) {
 	if pageSize < 1 {
 		pageSize = 10
 	}
-	startIndex := 0
-	if pageToken != "" {
-		var err error
-		startIndex, err = utils.DecodePageToken(pageToken)
-		if err != nil {
-			log.Printf("Error decoding page token: %v", err)
-		}
+	startIndex, err := utils.DecodePageToken(pageToken)
+	if err != nil {
+		log.Printf("Error decoding page token: %v", err)
+		return nil, "", err
 	}
-	posts, err := p.postRepository.Find(startIndex, pageSize+1, "", 0)
+
+	posts, err := p.postRepository.Find(startIndex, pageSize+1, sort, search, fromDate, toDate)
 	if err != nil {
 		log.Printf("Error getting posts: %v", err)
 		return nil, "", err
@@ -44,89 +52,122 @@ func (p *postService) Find(pageSize int, pageToken string, search string) ([]*po
 		nextPageToken = utils.EncodePageToken(startIndex + pageSize)
 		posts = posts[:pageSize]
 	}
-	postDetails := p.BuildPostDetails(posts, pageSize, startIndex)
 
-	return postDetails, nextPageToken, nil
-
-}
-
-func (p *postService) BuildPostDetails(posts []models.Post, pageSize, startIndex int) []*postPb.PostDetail {
-
-	var postDetails []*postPb.PostDetail
-	for _, post := range posts {
-		postDetails = append(postDetails, p.BuildPostDetail(post))
+	postDetails := make([]models.PostDetail, len(posts))
+	for i, post := range posts {
+		postDetails[i] = *p.buildPostDetail(post)
 	}
 
-	return postDetails
+	return postDetails, nextPageToken, nil
 }
 
-func (p *postService) BuildPostDetail(post models.Post) *postPb.PostDetail {
-	mediaContents, _ := p.GetMediaContents(post.Id)
-	return &postPb.PostDetail{
+func (p *postService) buildPostDetail(post models.Post) *models.PostDetail {
+	mediaContents, err := p.getMediaContents(post.Id)
+	if err != nil {
+		log.Printf("Error getting media contents for post %s: %v", post.Id, err)
+	}
+
+	return &models.PostDetail{
 		Id:           post.Id,
 		Title:        post.Title,
 		Contents:     mediaContents,
-		Author:       p.BuildPostAuthorDetail(post.AuthorId),
+		Author:       p.buildPostAuthorDetail(post.AuthorId),
 		CommentCount: 0,
 		LikeCount:    0,
 		RepostCount:  0,
 		ViewCount:    0,
-		CreatedAt:    timestamppb.New(post.CreatedAt.Time),
-		UpdatedAt:    timestamppb.New(post.UpdatedAt.Time),
-		DeletedAt:    timestamppb.New(post.DeletedAt.Time),
+		CreatedAt:    &post.CreatedAt.Time,
+		UpdatedAt:    &post.UpdatedAt.Time,
+		DeletedAt:    &post.DeletedAt.Time,
 	}
-
 }
-func (p *postService) BuildPostAuthorDetail(authorId string) *postPb.Author {
-	log.Printf("Getting user by id %s", authorId)
+
+func (p *postService) buildPostAuthorDetail(authorId string) models.Author {
 	user, err := p.userClient.GetById(context.Background(), &userPb.Id{Id: authorId})
 	if err != nil {
 		log.Printf("Error getting user by id %s: %v", authorId, err)
-		return nil
+		return models.Author{}
 	}
-	return &postPb.Author{
+	return models.Author{
 		Id:         user.Id,
 		FirstName:  user.FirstName,
 		MiddleName: user.MiddleName,
 		LastName:   user.LastName,
 		Email:      user.Email,
 		Phone:      user.Phone,
-		Avatar:     user.Avatar,
 	}
-
 }
 
-func (p *postService) GetMediaContents(postId string) ([]*postPb.MediaContents, error) {
-	contents, err := p.postRepository.GetContents(postId)
+func (p *postService) getMediaContents(postId string) ([]models.PostContentWithFile, error) {
+	contents, err := p.postContentRepository.Find(postId)
 	if err != nil {
 		return nil, err
 	}
 
-	var mediaContents []*postPb.MediaContents
+	mediaContents := make([]models.PostContentWithFile, 0, len(contents))
 	for _, content := range contents {
-		mediaContentFiles, err := p.GetMediaContentFiles(content.Id)
+		mediaContentFiles, err := p.getMediaContentFiles(content.Id)
 		if err != nil {
-			log.Printf("Error getting media content files for content %d: %v", content.Id, err)
+			log.Printf("Error getting media content files for content %s: %v", content.Id, err)
 			continue
 		}
-		mediaContents = append(mediaContents, &postPb.MediaContents{
-			Files: mediaContentFiles,
+		mediaContents = append(mediaContents, models.PostContentWithFile{
+			PostContentFiles: mediaContentFiles,
 		})
 	}
 	return mediaContents, nil
 }
 
-func (p *postService) GetMediaContentFiles(contentId string) ([]*postPb.MediaContentFiles, error) {
-	contentFiles, err := p.postRepository.GetContentFiles(contentId)
+func (p *postService) getMediaContentFiles(contentId string) ([]models.PostContentFile, error) {
+	contentFiles, err := p.postContentFileRepository.Find(contentId)
 	if err != nil {
 		return nil, err
 	}
 
-	var mediaContentFiles []*postPb.MediaContentFiles
-	for _, contentFile := range contentFiles {
-		mediaContentFiles = append(mediaContentFiles, &postPb.MediaContentFiles{
-			Url: contentFile.Url,
-		})
+	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))
+	for i, contentFile := range contentFiles {
+		mediaContentFiles[i] = models.PostContentFile{
+			FileName: contentFile.FileName,
+			Type:     contentFile.Type,
+			Size:     contentFile.Size,
+			Path:     contentFile.Path,
+		}
 	}
 	return mediaContentFiles, nil
+}
+
+func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error) {
+	id, err := p.postRepository.Create(data)
+	if err != nil {
+		return nil, err
+	}
+	for _, content := range data.Contents {
+		postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
+			PostId:  id,
+			Title:   content.Title,
+			Content: content.Content,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range content.PostContentFiles {
+			object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Content: file.Data, ContentType: file.ContentType})
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("Uploaded file %s to %s", file.FileName, object.FileName)
+
+			_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
+				PostContentId: postContentId,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	post, err := p.postRepository.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	return p.buildPostDetail(post), nil
 }

@@ -2,16 +2,25 @@ package repositories
 
 import (
 	"antibomberman/mego-post/internal/models"
+	"time"
 )
 
 type PostRepository interface {
-	Find(startIndex int, size int, search string, sort int) ([]models.Post, error)
+	Find(startIndex int, size int, sort string, search string, dateFrom *time.Time, dateTo *time.Time) ([]models.Post, error)
 	GetByAuthor(string, int, int, int) ([]models.Post, error)
 	GetById(string) (models.Post, error)
-	Create(models.PostCreate) (int, error)
+	Create(models.PostCreate) (string, error)
 	Delete(string) error
-	Update(string, models.PostUpdate) error
+	Update(models.PostUpdate) error
 	CountByAuthor(string) (int, error)
-	GetContents(string) ([]models.PostContent, error)
-	GetContentFiles(string) ([]models.PostContentFile, error)
+}
+
+type PostContentRepository interface {
+	Find(string) ([]models.PostContent, error)
+	Create(models.PostContentCreate) (id string, err error)
+}
+
+type PostContentFileRepository interface {
+	Find(string) ([]models.PostContentFile, error)
+	Create(models.PostContentFileCreate) (id string, err error)
 }

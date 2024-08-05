@@ -1,22 +1,35 @@
 package grpc
 
 import (
+	"antibomberman/mego-post/internal/dto"
 	"context"
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
+	"time"
 )
 
 func (s serverAPI) FindPost(ctx context.Context, req *postGrpc.FindPostRequest) (*postGrpc.FindPostResponse, error) {
-	posts, nextPageToken, err := s.service.Find(int(req.PageSize), req.PageToken, req.Search)
+	var dateFrom, dateTo *time.Time
+
+	if req.DateFrom != nil {
+		dateFromValue := req.DateFrom.AsTime()
+		dateFrom = &dateFromValue
+	}
+
+	if req.DateTo != nil {
+		dateToValue := req.DateTo.AsTime()
+		dateTo = &dateToValue
+	}
+	posts, nextPageToken, err := s.service.Find(int(req.PageSize), req.PageToken, req.SortOrder.String(), req.Search, dateFrom, dateTo)
 	if err != nil {
 		log.Printf("Error getting posts: %v", err)
 		return nil, status.Error(codes.Internal, "Failed to retrieve posts")
 	}
 
 	return &postGrpc.FindPostResponse{
-		Posts:         posts,
+		Posts:         dto.ToPbPostDetails(posts),
 		NextPageToken: nextPageToken,
 	}, nil
 }

@@ -21,8 +21,17 @@ func main() {
 	defer db.Close()
 
 	postRepository := repositories.NewPostRepository(db)
+	postContentRepository := repositories.NewPostContentRepository(db)
+	postContentFileRepository := repositories.NewPostContentFileRepository(db)
 	userClient, err := clients.NewUserClient(cfg.UserServiceAddress)
-	postService := services.NewPostService(postRepository, userClient)
+	storageClient, err := clients.NewStorageClient(cfg.UserServiceAddress)
+	postService := services.NewPostService(
+		postRepository,
+		postContentRepository,
+		postContentFileRepository,
+		userClient,
+		storageClient,
+	)
 
 	log.Printf("Starting gRPC server on port %s", cfg.PostServiceServerPort)
 	l, err := net.Listen("tcp", ":"+cfg.PostServiceServerPort)

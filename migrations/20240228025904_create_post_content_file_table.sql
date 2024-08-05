@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS post_content_files
     post_content_id INT REFERENCES post_contents (id) ,
     filename        TEXT,
     size            BIGINT,
-    url             TEXT,
+    path             TEXT,
     type            VARCHAR
 
 );

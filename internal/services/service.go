@@ -1,9 +1,11 @@
 package services
 
 import (
-	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
+	"antibomberman/mego-post/internal/models"
+	"time"
 )
 
 type PostService interface {
-	Find(int, string, string) ([]*postGrpc.PostDetail, string, error)
+	Find(pageSize int, pageToken string, sort string, search string, dateFrom, dateTo *time.Time) ([]models.PostDetail, string, error)
+	Create(post models.PostCreate) (*models.PostDetail, error)
 }

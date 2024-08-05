@@ -7,4 +7,5 @@ type Author struct {
 	LastName   string
 	Email      string
 	Phone      string
+	Avatar     string
 }
