@@ -123,20 +123,3 @@ func (r *postRepository) CountByAuthor(authorId string) (int, error) {
 	}
 	return count, nil
 }
-
-func (r *postRepository) GetContents(postId string) ([]models.PostContent, error) {
-	var postContent []models.PostContent
-	err := r.db.Select(&postContent, "SELECT id,title,content FROM post_contents WHERE post_id = $1", postId)
-	if err != nil {
-		return []models.PostContent{}, err
-	}
-	return postContent, nil
-}
-func (r *postRepository) GetContentFiles(postContentId string) ([]models.PostContentFile, error) {
-	var postContentFiles []models.PostContentFile
-	err := r.db.Select(&postContentFiles, "SELECT filename,path,size,type FROM post_content_files WHERE post_content_id = $1", postContentId)
-	if err != nil {
-		return []models.PostContentFile{}, err
-	}
-	return postContentFiles, nil
-}
