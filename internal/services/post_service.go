@@ -83,18 +83,21 @@ func (p *postService) buildPostDetail(post models.Post) *models.PostDetail {
 }
 
 func (p *postService) buildPostAuthorDetail(authorId string) models.Author {
-	user, err := p.userClient.GetById(context.Background(), &userPb.Id{Id: authorId})
+	response, err := p.userClient.GetById(context.Background(), &userPb.Id{Id: authorId})
 	if err != nil {
 		log.Printf("Error getting user by id %s: %v", authorId, err)
 		return models.Author{}
 	}
+	if response.Success != true {
+		return models.Author{}
+	}
 	return models.Author{
-		Id:         user.Id,
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName,
-		LastName:   user.LastName,
-		Email:      user.Email,
-		Phone:      user.Phone,
+		Id:         response.User.Id,
+		FirstName:  response.User.FirstName,
+		MiddleName: response.User.MiddleName,
+		LastName:   response.User.LastName,
+		Email:      response.User.Email,
+		Phone:      response.User.Phone,
 	}
 }
 

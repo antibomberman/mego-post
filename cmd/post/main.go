@@ -25,6 +25,7 @@ func main() {
 	postContentFileRepository := repositories.NewPostContentFileRepository(db)
 	userClient, err := clients.NewUserClient(cfg.UserServiceAddress)
 	storageClient, err := clients.NewStorageClient(cfg.UserServiceAddress)
+
 	postService := services.NewPostService(
 		postRepository,
 		postContentRepository,
