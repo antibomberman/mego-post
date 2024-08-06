@@ -17,7 +17,7 @@ services:
     container_name: mego_post_redis
     image: redis:6.2.6-alpine
     ports:
-      - "${REDIS_OUTER_PORT}:6379"
+      - "${REDIS_OUTER_PORT}:${REDIS_PORT}"
     volumes:
       - ./tmp/redis:/data
     networks:

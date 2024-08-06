@@ -26,6 +26,8 @@ github.com/antibomberman/mego-protos v0.0.22 h1:MPUfukdxr327+sFvbqBZX/Co6WJo/+7y
 github.com/antibomberman/mego-protos v0.0.22/go.mod h1:VPMBG3z+MOzBSAyIqD1tWXYVDSv20kHozawJ7Tc8F7Y=
 github.com/antibomberman/mego-protos v0.0.33 h1:Wehb0U77zlHAGYKEq6Y9qHN4VfL0mqPSbYS6eJ7xU1c=
 github.com/antibomberman/mego-protos v0.0.33/go.mod h1:VPMBG3z+MOzBSAyIqD1tWXYVDSv20kHozawJ7Tc8F7Y=
+github.com/antibomberman/mego-protos v0.0.45 h1:E6McqKfgIGJbbIxk2BFsH21T/ZP4dLhyseeJps8hY6Y=
+github.com/antibomberman/mego-protos v0.0.45/go.mod h1:VPMBG3z+MOzBSAyIqD1tWXYVDSv20kHozawJ7Tc8F7Y=
 github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpvNJ1Y=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
