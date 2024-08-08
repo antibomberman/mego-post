@@ -6,14 +6,14 @@ import (
 	userGrpc "github.com/antibomberman/mego-protos/gen/go/user"
 )
 
-func ToPbAuthorDetail(author models.Author, avatar *models.Avatar) *postGrpc.Author {
+func ToPbAuthorDetail(author models.Author) *postGrpc.Author {
 	return &postGrpc.Author{
 		Id:        author.Id,
 		FirstName: author.FirstName,
 		LastName:  author.LastName,
 		Email:     author.Email,
 		Phone:     author.Phone,
-		Avatar:    ToPbAvatar(avatar),
+		Avatar:    ToPbAvatar(author.Avatar),
 	}
 }
 func ToPbAvatar(avatar *models.Avatar) *postGrpc.Avatar {
