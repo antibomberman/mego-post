@@ -11,4 +11,7 @@ type PostService interface {
 	Update(post models.PostUpdate) (*models.PostDetail, error)
 	GetById(id string) (*models.PostDetail, error)
 	Delete(id, authorId string) error
+	GetByAuthor(authorId string, pageSize int, pageToken string, sort string) ([]models.PostDetail, string, error)
+}
+type PostContentService interface {
 }

@@ -38,10 +38,11 @@ type PostCreate struct {
 	AuthorId string `json:"author_id"`
 	Type     string `json:"type"`
 
-	Contents []PostContentWithFileBinary `json:"contents"`
+	Contents []PostContentCreateOrUpdate `json:"contents"`
 }
 type PostUpdate struct {
-	Id    string `db:"id" json:"id"`
-	Title string `db:"title" json:"title"`
-	Type  string `db:"type" json:"type"`
+	Id       string                      `db:"id" json:"id"`
+	Title    string                      `db:"title" json:"title"`
+	Type     string                      `db:"type" json:"type"`
+	Contents []PostContentCreateOrUpdate `json:"contents"`
 }

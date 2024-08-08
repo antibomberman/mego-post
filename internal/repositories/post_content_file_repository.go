@@ -26,13 +26,21 @@ func (r *postContentFileRepository) Find(postContentId string) ([]models.PostCon
 
 func (r *postContentFileRepository) Create(create models.PostContentFileCreate) (string, error) {
 	query := `
-        INSERT INTO post_content_files (post_content_id, filename, path, size, type)
-        VALUES ($1, $2, $3, $4, $5) RETURNING id;
+        INSERT INTO post_content_files (post_content_id, file_name, content_type)
+        VALUES ($1, $2, $3, $4) RETURNING id;
     `
 	id := ""
-	err := r.db.QueryRowx(query, create.PostContentId, create.FileName, create.Path, create.Size, create.Type).Scan(&id)
+	err := r.db.QueryRowx(query, create.PostContentId, create.FileName, create.ContentType).Scan(&id)
 	if err != nil {
 		return "", err
 	}
 	return id, nil
+}
+
+func (r *postContentFileRepository) Delete(id string) error {
+	_, err := r.db.Exec("DELETE FROM post_content_files WHERE id = $1;", id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

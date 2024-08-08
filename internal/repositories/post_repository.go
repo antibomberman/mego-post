@@ -52,12 +52,12 @@ func (r *postRepository) Find(startIndex int, size int, sort string, search stri
 func (r *postRepository) GetByAuthor(authorId string, startIndex int, size int, sort string) ([]models.Post, error) {
 	var posts []models.Post
 
-	query := `SELECT id, title, created_at FROM posts WHERE user_id = $1`
+	query := `SELECT id, title, created_at FROM posts WHERE author_id = $1`
 
 	switch sort {
-	case 0:
+	case "0":
 		query += " ORDER BY created_at DESC"
-	case 1:
+	case "1":
 		query += " ORDER BY created_at ASC"
 	default:
 		query += " ORDER BY created_at DESC"

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"antibomberman/mego-post/internal/dto"
+	"antibomberman/mego-post/internal/models"
 	"context"
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 	"google.golang.org/grpc/codes"
@@ -33,15 +34,61 @@ func (s serverAPI) FindPost(ctx context.Context, req *postGrpc.FindPostRequest) 
 		NextPageToken: nextPageToken,
 	}, nil
 }
-func (s serverAPI) CreatePost(context.Context, *postGrpc.CreatePostRequest) (*postGrpc.PostDetail, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
+func (s serverAPI) GetByAuthor(ctx context.Context, req *postGrpc.GetByAuthorRequest) (*postGrpc.GetByAuthorResponse, error) {
+	posts, nextPageToken, err := s.service.GetByAuthor(req.AuthorId, int(req.PageSize), req.PageToken, req.SortOrder.String())
+	if err != nil {
+		log.Printf("Error getting posts: %v", err)
+		return nil, status.Error(codes.Internal, "Failed to retrieve posts")
+	}
+
+	return &postGrpc.GetByAuthorResponse{
+		Posts:         dto.ToPbPostDetails(posts),
+		NextPageToken: nextPageToken,
+	}, nil
 }
-func (s serverAPI) UpdatePost(context.Context, *postGrpc.UpdatePostRequest) (*postGrpc.PostDetail, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdatePost not implemented")
+func (s serverAPI) GetById(ctx context.Context, req *postGrpc.GetByIdRequest) (*postGrpc.PostDetail, error) {
+	post, err := s.service.GetById(req.Id)
+	if err != nil {
+		log.Printf("Error getting post: %v", err)
+		return nil, status.Error(codes.Internal, "Failed to retrieve post")
+	}
+	return dto.ToPbPostDetail(*post), nil
 }
-func (s serverAPI) DeletePost(context.Context, *postGrpc.DeletePostRequest) (*postGrpc.PostDetail, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
+
+func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostRequest) (*postGrpc.PostDetail, error) {
+
+	postDetail, err := s.service.Create(models.PostCreate{
+		Title:    req.Title,
+		AuthorId: req.AuthorId,
+		Type:     req.Type.String(),
+		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return dto.ToPbPostDetail(*postDetail), nil
 }
-func (s serverAPI) HidePost(context.Context, *postGrpc.HidePostRequest) (*postGrpc.PostDetail, error) {
+
+func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostRequest) (*postGrpc.PostDetail, error) {
+	postDetail, err := s.service.Update(models.PostUpdate{
+		Id:       req.Id,
+		Title:    req.Title,
+		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return dto.ToPbPostDetail(*postDetail), nil
+}
+func (s serverAPI) DeletePost(ctx context.Context, req *postGrpc.DeletePostRequest) (*postGrpc.DeletePostResponse, error) {
+	err := s.service.Delete(req.Id, req.AuthorId)
+	if err != nil {
+		log.Printf("Error deleting post: %v", err)
+		return nil, status.Error(codes.Internal, "Failed to delete post")
+	}
+	return &postGrpc.DeletePostResponse{}, nil
+}
+
+func (s serverAPI) HidePost(context.Context, *postGrpc.HidePostRequest) (*postGrpc.HidePostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HidePost not implemented")
 }

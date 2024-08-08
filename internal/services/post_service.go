@@ -98,83 +98,128 @@ func (p *postService) GetById(id string) (*models.PostDetail, error) {
 }
 
 func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error) {
-	id, err := p.postRepository.Create(data)
+	postId, err := p.postRepository.Create(data)
 	if err != nil {
 		return nil, err
 	}
-	for _, content := range data.Contents {
+	for _, dataContent := range data.Contents {
 		postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
-			PostId:  id,
-			Title:   content.Title,
-			Content: content.Content,
+			PostId:  postId,
+			Title:   dataContent.Title,
+			Content: dataContent.Content,
 		})
 		if err != nil {
 			return nil, err
 		}
-		for _, file := range content.PostContentFiles {
+		for _, file := range dataContent.Files {
 			object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Data: file.Data, ContentType: file.ContentType})
 			if err != nil {
+				log.Printf("Error uploading file %s: %v", file.FileName, err)
 				return nil, err
 			}
-			log.Printf("Uploaded file %s to %s", file.FileName, object.FileName)
 
 			_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
 				PostContentId: postContentId,
+				FileName:      object.FileName,
+				ContentType:   file.ContentType,
 			})
 			if err != nil {
+				log.Printf("Error creating post content file: %v", err)
 				return nil, err
 			}
 		}
 	}
-	post, err := p.postRepository.GetById(id)
+
+	return p.GetById(postId)
+}
+func (p *postService) Update(data models.PostUpdate) (*models.PostDetail, error) {
+	err := p.postRepository.Update(data)
 	if err != nil {
 		return nil, err
 	}
-	return p.buildPostDetail(post), nil
-}
-func (p *postService) Update(data models.PostUpdate) (*models.PostDetail, error) {
-	//id, err := p.postRepository.Create(data)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//for _, content := range data.Contents {
-	//	postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
-	//		PostId:  id,
-	//		Title:   content.Title,
-	//		Content: content.Content,
-	//	})
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	for _, file := range content.PostContentFiles {
-	//		object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Content: file.Data, ContentType: file.ContentType})
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		log.Printf("Uploaded file %s to %s", file.FileName, object.FileName)
-	//
-	//		_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
-	//			PostContentId: postContentId,
-	//		})
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//	}
-	//}
-	//post, err := p.postRepository.GetById(id)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return p.buildPostDetail(post), nil
-	return nil, nil
+	err = p.deletePostContents(data.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, dataContent := range data.Contents {
+		postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
+			PostId:  data.Id,
+			Title:   dataContent.Title,
+			Content: dataContent.Content,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range dataContent.Files {
+			object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Data: file.Data, ContentType: file.ContentType})
+			if err != nil {
+				log.Printf("Error uploading file %s: %v", file.FileName, err)
+				return nil, err
+			}
+
+			_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
+				PostContentId: postContentId,
+				FileName:      object.FileName,
+				ContentType:   file.ContentType,
+			})
+			if err != nil {
+				log.Printf("Error creating post content file: %v", err)
+				return nil, err
+			}
+		}
+	}
+
+	return p.GetById(data.Id)
 }
 
 func (p *postService) Delete(id, authorId string) error {
-	err := p.postRepository.Delete(id, authorId)
+	err := p.deletePostContents(id)
+	if err != nil {
+		return err
+	}
+	err = p.postRepository.Delete(id, authorId)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (p *postService) deletePostContents(postId string) error {
+	postContents, err := p.postContentRepository.Find(postId)
+	if err != nil {
+		return err
+	}
+	for _, postContent := range postContents {
+		err := p.deletePostContentFiles(postContent.Id)
+		if err != nil {
+			log.Printf("Error deleting post content files for post %s: %v", postContent.Id, err)
+			continue
+		}
+		err = p.postContentRepository.Delete(postContent.Id)
+		if err != nil {
+			log.Printf("Error deleting post content %s: %v", postContent.Id, err)
+		}
+	}
+	return nil
+}
+func (p *postService) deletePostContentFiles(postContentId string) error {
+	postContentFiles, err := p.postContentFileRepository.Find(postContentId)
+	if err != nil {
+		return err
+	}
+	for _, postContentFile := range postContentFiles {
+		_, err := p.storageClient.DeleteObject(context.Background(), &pb.DeleteObjectRequest{FileName: postContentFile.FileName})
+		if err != nil {
+			log.Printf("Error deleting file %s: %v", postContentFile.FileName, err)
+			continue
+		}
+		err = p.postContentFileRepository.Delete(postContentFile.Id)
+		if err != nil {
+			log.Printf("Error deleting post content file %s: %v", postContentFile.Id, err)
+			continue
+		}
+	}
 	return nil
 }
 
@@ -245,10 +290,9 @@ func (p *postService) getMediaContentFiles(contentId string) ([]models.PostConte
 	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))
 	for i, contentFile := range contentFiles {
 		mediaContentFiles[i] = models.PostContentFile{
-			FileName: contentFile.FileName,
-			Type:     contentFile.Type,
-			Size:     contentFile.Size,
-			Path:     contentFile.Path,
+			FileName:    contentFile.FileName,
+			ContentType: contentFile.ContentType,
+			Url:         contentFile.Url,
 		}
 	}
 	return mediaContentFiles, nil

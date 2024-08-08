@@ -12,6 +12,6 @@ func ToPbAuthorDetail(author models.Author) *postGrpc.Author {
 		LastName:  author.LastName,
 		Email:     author.Email,
 		Phone:     author.Phone,
-		Avatar:    author.Avatar,
+		//Avatar:    author.Avatar,
 	}
 }

@@ -2,6 +2,7 @@ package models
 
 type PostContent struct {
 	Id      string `db:"id"`
+	PostId  string `db:"post_id"`
 	Title   string `db:"title"`
 	Content string `db:"content" json:"content"`
 }
@@ -18,8 +19,8 @@ type PostContentWithFile struct {
 	PostContentFiles []PostContentFile `db:"post_content_files" json:"files"`
 }
 
-type PostContentWithFileBinary struct {
-	Title            string                  `db:"title" json:"title"`
-	Content          string                  `db:"content" json:"content"`
-	PostContentFiles []PostContentFileBinary `db:"post_content_files" json:"files"`
+type PostContentCreateOrUpdate struct {
+	Title   string                  `db:"title" json:"title"`
+	Content string                  `db:"content" json:"content"`
+	Files   []PostContentFileCreate `db:"files" json:"files"`
 }

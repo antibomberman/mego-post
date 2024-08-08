@@ -16,11 +16,13 @@ type PostRepository interface {
 }
 
 type PostContentRepository interface {
-	Find(string) ([]models.PostContent, error)
-	Create(models.PostContentCreate) (id string, err error)
+	Find(postId string) ([]models.PostContent, error)
+	Create(create models.PostContentCreate) (id string, err error)
+	Delete(postId string) error
 }
 
 type PostContentFileRepository interface {
 	Find(string) ([]models.PostContentFile, error)
 	Create(models.PostContentFileCreate) (id string, err error)
+	Delete(id string) error
 }

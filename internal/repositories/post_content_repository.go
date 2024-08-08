@@ -32,3 +32,8 @@ func (r *postContentRepository) Create(postContent models.PostContentCreate) (id
 	err = r.db.QueryRowx(query, postContent.PostId, postContent.Title, postContent.Content).Scan(&id)
 	return id, err
 }
+func (r *postContentRepository) Delete(id string) error {
+	query := "DELETE FROM post_contents WHERE id = $1"
+	_, err := r.db.Exec(query, id)
+	return err
+}
