@@ -1,6 +1,7 @@
 package services
 
 import (
+	"antibomberman/mego-post/internal/dto"
 	"context"
 	pb "github.com/antibomberman/mego-protos/gen/go/storage"
 	"log"
@@ -258,13 +259,14 @@ func (p *postService) buildPostAuthorDetail(authorId string) models.Author {
 		LastName:   user.LastName,
 		Email:      user.Email,
 		Phone:      user.Phone,
+		Avatar:     dto.ToAvatar(user.Avatar),
 	}
 }
 
 func (p *postService) getMediaContents(postId string) ([]models.PostContentWithFile, error) {
 	contents, err := p.postContentRepository.Find(postId)
 	if err != nil {
-		return nil, err
+		return []models.PostContentWithFile{}, err
 	}
 
 	mediaContents := make([]models.PostContentWithFile, 0, len(contents))
@@ -284,7 +286,7 @@ func (p *postService) getMediaContents(postId string) ([]models.PostContentWithF
 func (p *postService) getMediaContentFiles(contentId string) ([]models.PostContentFile, error) {
 	contentFiles, err := p.postContentFileRepository.Find(contentId)
 	if err != nil {
-		return nil, err
+		return []models.PostContentFile{}, err
 	}
 
 	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))

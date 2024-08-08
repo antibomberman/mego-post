@@ -7,5 +7,9 @@ type Author struct {
 	LastName   string
 	Email      string
 	Phone      string
-	Avatar     string
+	Avatar     *Avatar
+}
+type Avatar struct {
+	FileName string
+	Url      string
 }
