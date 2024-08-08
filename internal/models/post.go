@@ -34,10 +34,9 @@ type PostDetail struct {
 }
 
 type PostCreate struct {
-	Title    string `json:"title"`
-	AuthorId string `json:"author_id"`
-	Type     string `json:"type"`
-
+	Title    string                      `json:"title"`
+	AuthorId string                      `json:"author_id"`
+	Type     string                      `json:"type"`
 	Contents []PostContentCreateOrUpdate `json:"contents"`
 }
 type PostUpdate struct {

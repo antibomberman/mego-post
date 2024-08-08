@@ -54,7 +54,6 @@ func (s serverAPI) GetById(ctx context.Context, req *postGrpc.GetByIdRequest) (*
 	}
 	return dto.ToPbPostDetail(*post), nil
 }
-
 func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostRequest) (*postGrpc.PostDetail, error) {
 
 	postDetail, err := s.service.Create(models.PostCreate{
@@ -64,11 +63,11 @@ func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostReque
 		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {
+		log.Printf("Error creating post: %v", err)
 		return nil, err
 	}
 	return dto.ToPbPostDetail(*postDetail), nil
 }
-
 func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostRequest) (*postGrpc.PostDetail, error) {
 	postDetail, err := s.service.Update(models.PostUpdate{
 		Id:       req.Id,
@@ -76,6 +75,7 @@ func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostReque
 		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {
+		log.Printf("Error updating post: %v", err)
 		return nil, err
 	}
 	return dto.ToPbPostDetail(*postDetail), nil
