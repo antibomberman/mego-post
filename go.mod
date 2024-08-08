@@ -3,7 +3,7 @@ module antibomberman/mego-post
 go 1.22.5
 
 require (
-	github.com/antibomberman/mego-protos v0.0.45
+	github.com/antibomberman/mego-protos v0.0.59
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jmoiron/sqlx v1.4.0
 	google.golang.org/grpc v1.65.0

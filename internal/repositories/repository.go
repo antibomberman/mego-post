@@ -7,10 +7,10 @@ import (
 
 type PostRepository interface {
 	Find(startIndex int, size int, sort string, search string, dateFrom *time.Time, dateTo *time.Time) ([]models.Post, error)
-	GetByAuthor(string, int, int, int) ([]models.Post, error)
+	GetByAuthor(authorId string, startIndex int, size int, sort string) ([]models.Post, error)
 	GetById(string) (models.Post, error)
 	Create(models.PostCreate) (string, error)
-	Delete(string) error
+	Delete(id, authorId string) error
 	Update(models.PostUpdate) error
 	CountByAuthor(string) (int, error)
 }

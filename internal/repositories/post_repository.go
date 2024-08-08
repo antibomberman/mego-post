@@ -49,7 +49,7 @@ func (r *postRepository) Find(startIndex int, size int, sort string, search stri
 
 	return posts, nil
 }
-func (r *postRepository) GetByAuthor(authorId string, startIndex int, size int, sort int) ([]models.Post, error) {
+func (r *postRepository) GetByAuthor(authorId string, startIndex int, size int, sort string) ([]models.Post, error) {
 	var posts []models.Post
 
 	query := `SELECT id, title, created_at FROM posts WHERE user_id = $1`
@@ -95,8 +95,8 @@ func (r *postRepository) Create(data models.PostCreate) (string, error) {
 	return strconv.FormatInt(id, 10), nil
 }
 
-func (r *postRepository) Delete(id string) error {
-	_, err := r.db.Exec("DELETE FROM posts WHERE id = $1;", id)
+func (r *postRepository) Delete(id, authorId string) error {
+	_, err := r.db.Exec("DELETE FROM posts WHERE id = $1 AND author_id = $2;", id, authorId)
 	if err != nil {
 		return err
 	}
