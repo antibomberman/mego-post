@@ -17,7 +17,7 @@ func NewPostContentFileRepository(db *sqlx.DB) PostContentFileRepository {
 
 func (r *postContentFileRepository) Find(postContentId string) ([]models.PostContentFile, error) {
 	var postContentFiles []models.PostContentFile
-	err := r.db.Select(&postContentFiles, "SELECT filename,path,size,type FROM post_content_files WHERE post_content_id = $1", postContentId)
+	err := r.db.Select(&postContentFiles, "SELECT * FROM post_content_files WHERE post_content_id = $1", postContentId)
 	if err != nil {
 		return []models.PostContentFile{}, err
 	}

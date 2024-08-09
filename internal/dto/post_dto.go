@@ -20,8 +20,8 @@ func ToPbPostDetail(details models.PostDetail) *postGrpc.PostDetail {
 }
 func ToPbPostDetails(details []models.PostDetail) []*postGrpc.PostDetail {
 	pbPostDetails := make([]*postGrpc.PostDetail, len(details))
-	for _, detail := range details {
-		pbPostDetails = append(pbPostDetails, ToPbPostDetail(detail))
+	for i, detail := range details {
+		pbPostDetails[i] = ToPbPostDetail(detail)
 	}
 	return pbPostDetails
 }

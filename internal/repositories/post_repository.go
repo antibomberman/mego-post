@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"antibomberman/mego-post/internal/models"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"strconv"
 	"time"
@@ -31,15 +32,23 @@ func (r *postRepository) Find(startIndex int, size int, sort string, search stri
 		query += ` AND created_at <= ` + dateTo.Format("2006-01-02")
 	}
 	switch sort {
-	case "0":
+	case "NEWEST":
 		query += " ORDER BY created_at DESC"
-	case "1":
+	case "OLDEST":
 		query += " ORDER BY created_at ASC"
+	case "MOST_LIKED":
+		query += ""
+	case "MOST_COMMENTED":
+		query += ""
 	default:
 		query += " ORDER BY created_at DESC"
 	}
+	query += " OFFSET $1 LIMIT $2"
 
-	err := r.db.Select(&posts, query+" OFFSET $1 LIMIT $2", startIndex, size)
+	fmt.Println(query)
+	fmt.Println(startIndex)
+	fmt.Println(size)
+	err := r.db.Select(&posts, query, startIndex, size)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +64,14 @@ func (r *postRepository) GetByAuthor(authorId string, startIndex int, size int, 
 	query := `SELECT id, title, created_at FROM posts WHERE author_id = $1`
 
 	switch sort {
-	case "0":
+	case "NEWEST":
 		query += " ORDER BY created_at DESC"
-	case "1":
+	case "OLDEST":
 		query += " ORDER BY created_at ASC"
+	case "MOST_LIKED":
+		query += ""
+	case "MOST_COMMENTED":
+		query += ""
 	default:
 		query += " ORDER BY created_at DESC"
 	}

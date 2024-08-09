@@ -28,7 +28,6 @@ func (s serverAPI) FindPost(ctx context.Context, req *postGrpc.FindPostRequest) 
 		log.Printf("Error getting posts: %v", err)
 		return nil, status.Error(codes.Internal, "Failed to retrieve posts")
 	}
-
 	return &postGrpc.FindPostResponse{
 		Posts:         dto.ToPbPostDetails(posts),
 		NextPageToken: nextPageToken,

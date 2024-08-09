@@ -33,13 +33,17 @@ func NewPostService(postRepo repositories.PostRepository, postContentRepo reposi
 }
 
 func (p *postService) Find(pageSize int, pageToken, sort, search string, fromDate, toDate *time.Time) ([]models.PostDetail, string, error) {
+	var err error
 	if pageSize < 1 {
 		pageSize = 10
 	}
-	startIndex, err := utils.DecodePageToken(pageToken)
-	if err != nil {
-		log.Printf("Error decoding page token: %v", err)
-		return nil, "", err
+	startIndex := 0
+	if pageToken != "" {
+		startIndex, err = utils.DecodePageToken(pageToken)
+		if err != nil {
+			log.Printf("Error decoding page token: %v", err)
+			return nil, "", err
+		}
 	}
 
 	posts, err := p.postRepository.Find(startIndex, pageSize+1, sort, search, fromDate, toDate)
@@ -58,14 +62,17 @@ func (p *postService) Find(pageSize int, pageToken, sort, search string, fromDat
 	for i, post := range posts {
 		postDetails[i] = *p.buildPostDetail(post)
 	}
-
 	return postDetails, nextPageToken, nil
 }
 func (p *postService) GetByAuthor(authorId string, pageSize int, pageToken, sort string) ([]models.PostDetail, string, error) {
+	var err error
 	if pageSize < 1 {
 		pageSize = 10
 	}
-	startIndex, err := utils.DecodePageToken(pageToken)
+	startIndex := 0
+	if pageToken != "" {
+		startIndex, err = utils.DecodePageToken(pageToken)
+	}
 	if err != nil {
 		log.Printf("Error decoding page token: %v", err)
 		return nil, "", err
@@ -269,16 +276,16 @@ func (p *postService) getMediaContents(postId string) ([]models.PostContentWithF
 		return []models.PostContentWithFile{}, err
 	}
 
-	mediaContents := make([]models.PostContentWithFile, 0, len(contents))
-	for _, content := range contents {
+	mediaContents := make([]models.PostContentWithFile, len(contents))
+	for i, content := range contents {
 		mediaContentFiles, err := p.getMediaContentFiles(content.Id)
 		if err != nil {
 			log.Printf("Error getting media content files for content %s: %v", content.Id, err)
 			continue
 		}
-		mediaContents = append(mediaContents, models.PostContentWithFile{
+		mediaContents[i] = models.PostContentWithFile{
 			PostContentFiles: mediaContentFiles,
-		})
+		}
 	}
 	return mediaContents, nil
 }
@@ -286,15 +293,21 @@ func (p *postService) getMediaContents(postId string) ([]models.PostContentWithF
 func (p *postService) getMediaContentFiles(contentId string) ([]models.PostContentFile, error) {
 	contentFiles, err := p.postContentFileRepository.Find(contentId)
 	if err != nil {
-		return []models.PostContentFile{}, err
+		return nil, err
 	}
-
 	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))
 	for i, contentFile := range contentFiles {
+		rsp, err := p.storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
+			FileName: contentFile.FileName,
+		})
+		if err != nil {
+			log.Printf("Error getting object url for file %s: %v", contentFile.FileName, err)
+			continue
+		}
 		mediaContentFiles[i] = models.PostContentFile{
 			FileName:    contentFile.FileName,
 			ContentType: contentFile.ContentType,
-			Url:         contentFile.Url,
+			Url:         rsp.Url,
 		}
 	}
 	return mediaContentFiles, nil

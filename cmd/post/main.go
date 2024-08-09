@@ -7,6 +7,9 @@ import (
 	"antibomberman/mego-post/internal/database"
 	"antibomberman/mego-post/internal/repositories"
 	"antibomberman/mego-post/internal/services"
+	"context"
+	"fmt"
+	pb "github.com/antibomberman/mego-protos/gen/go/storage"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -24,7 +27,7 @@ func main() {
 	postContentRepository := repositories.NewPostContentRepository(db)
 	postContentFileRepository := repositories.NewPostContentFileRepository(db)
 	userClient, err := clients.NewUserClient(cfg.UserServiceAddress)
-	storageClient, err := clients.NewStorageClient(cfg.UserServiceAddress)
+	storageClient, err := clients.NewStorageClient(cfg.StorageServiceAddress)
 
 	postService := services.NewPostService(
 		postRepository,
@@ -33,6 +36,13 @@ func main() {
 		userClient,
 		storageClient,
 	)
+	rsp, err := storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
+		FileName: "test.png",
+	})
+	if err != nil {
+		fmt.Printf("Error getting object URL: %v", err)
+	}
+	log.Println("Object URL:", rsp.Url)
 
 	log.Printf("Starting gRPC server on port %s", cfg.PostServiceServerPort)
 	l, err := net.Listen("tcp", ":"+cfg.PostServiceServerPort)
