@@ -15,10 +15,11 @@ type Config struct {
 	RedisPort string `env:"REDIS_PORT" required:"true"`
 	RedisHost string `env:"REDIS_HOST" required:"true"`
 
-	JWTSecret             string `env:"JWT_SECRET" required:"true"`
-	PostServiceServerPort string `env:"POST_SERVICE_SERVER_PORT" required:"true"`
-	UserServiceAddress    string `env:"USER_SERVICE_ADDRESS" required:"true"`
-	StorageServiceAddress string `env:"STORAGE_SERVICE_ADDRESS" required:"true"`
+	JWTSecret              string `env:"JWT_SECRET" required:"true"`
+	PostServiceServerPort  string `env:"POST_SERVICE_SERVER_PORT" required:"true"`
+	UserServiceAddress     string `env:"USER_SERVICE_ADDRESS" required:"true"`
+	StorageServiceAddress  string `env:"STORAGE_SERVICE_ADDRESS" required:"true"`
+	FavoriteServiceAddress string `env:"FAVORITE_SERVICE_ADDRESS" required:"true"`
 }
 
 func Load() *Config {

@@ -20,15 +20,17 @@ type postService struct {
 	postContentFileRepository repositories.PostContentFileRepository
 	userClient                *clients.UserClient
 	storageClient             *clients.StorageClient
+	favoriteClient            *clients.FavoriteClient
 }
 
-func NewPostService(postRepo repositories.PostRepository, postContentRepo repositories.PostContentRepository, postContentFileRepo repositories.PostContentFileRepository, userClient *clients.UserClient, storageClient *clients.StorageClient) PostService {
+func NewPostService(postRepo repositories.PostRepository, postContentRepo repositories.PostContentRepository, postContentFileRepo repositories.PostContentFileRepository, userClient *clients.UserClient, storageClient *clients.StorageClient, favoriteClient *clients.FavoriteClient) PostService {
 	return &postService{
 		postRepository:            postRepo,
 		postContentRepository:     postContentRepo,
 		postContentFileRepository: postContentFileRepo,
 		userClient:                userClient,
 		storageClient:             storageClient,
+		favoriteClient:            favoriteClient,
 	}
 }
 

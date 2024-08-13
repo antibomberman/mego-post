@@ -28,6 +28,7 @@ func main() {
 	postContentFileRepository := repositories.NewPostContentFileRepository(db)
 	userClient, err := clients.NewUserClient(cfg.UserServiceAddress)
 	storageClient, err := clients.NewStorageClient(cfg.StorageServiceAddress)
+	favoriteClient, err := clients.NewFavoriteClient(cfg.StorageServiceAddress)
 
 	postService := services.NewPostService(
 		postRepository,
@@ -35,6 +36,7 @@ func main() {
 		postContentFileRepository,
 		userClient,
 		storageClient,
+		favoriteClient,
 	)
 	rsp, err := storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
 		FileName: "test.png",
