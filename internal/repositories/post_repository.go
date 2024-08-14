@@ -97,14 +97,13 @@ func (r *postRepository) GetById(id string) (models.Post, error) {
 }
 
 func (r *postRepository) Create(data models.PostCreate) (string, error) {
-	res, err := r.db.Exec("INSERT INTO posts (title, author_id, type) values ($1, $2, $3)", data.Title, data.AuthorId, data.Type)
+	var id int64
+
+	err := r.db.QueryRow("INSERT INTO posts (title, author_id, type) VALUES ($1, $2, $3) RETURNING id", data.Title, data.AuthorId, data.Type).Scan(&id)
 	if err != nil {
 		return "", err
 	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return "", err
-	}
+
 	return strconv.FormatInt(id, 10), nil
 }
 

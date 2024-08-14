@@ -26,10 +26,9 @@ func (r *postContentRepository) Find(postId string) ([]models.PostContent, error
 
 func (r *postContentRepository) Create(postContent models.PostContentCreate) (id string, err error) {
 	query := `
-        INSERT INTO post_contents (post_id, title, content)
-            VALUES ($1, $2, $3) RETURNING id;
+        INSERT INTO post_contents (post_id, title, content) VALUES ($1, $2, $3) RETURNING id;
     `
-	err = r.db.QueryRowx(query, postContent.PostId, postContent.Title, postContent.Content).Scan(&id)
+	err = r.db.QueryRow(query, postContent.PostId, postContent.Title, postContent.Content).Scan(&id)
 	return id, err
 }
 func (r *postContentRepository) Delete(id string) error {

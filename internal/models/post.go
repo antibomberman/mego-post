@@ -19,7 +19,7 @@ type PostDetail struct {
 	Id     string `json:"id"`
 	Title  string `json:"title"`
 	Author Author `json:"author"`
-	Type   string `json:"type"`
+	Type   int    `json:"type"`
 
 	Contents []PostContentWithFile `json:"contents"`
 
@@ -36,12 +36,12 @@ type PostDetail struct {
 type PostCreate struct {
 	Title    string                      `json:"title"`
 	AuthorId string                      `json:"author_id"`
-	Type     string                      `json:"type"`
+	Type     int                         `json:"type"`
 	Contents []PostContentCreateOrUpdate `json:"contents"`
 }
 type PostUpdate struct {
 	Id       string                      `db:"id" json:"id"`
 	Title    string                      `db:"title" json:"title"`
-	Type     string                      `db:"type" json:"type"`
+	Type     int                         `db:"type" json:"type"`
 	Contents []PostContentCreateOrUpdate `json:"contents"`
 }

@@ -10,6 +10,7 @@ func ToPbPostDetail(details models.PostDetail) *postGrpc.PostDetail {
 	pbUserDetails := &postGrpc.PostDetail{
 		Id:        details.Id,
 		Title:     details.Title,
+		Type:      postGrpc.PostType(details.Type),
 		CreatedAt: timestamppb.New(*details.CreatedAt),
 		UpdatedAt: timestamppb.New(*details.UpdatedAt),
 		DeletedAt: timestamppb.New(*details.DeletedAt),

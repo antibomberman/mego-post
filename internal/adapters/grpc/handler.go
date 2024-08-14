@@ -4,6 +4,7 @@ import (
 	"antibomberman/mego-post/internal/dto"
 	"antibomberman/mego-post/internal/models"
 	"context"
+	"fmt"
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -54,11 +55,11 @@ func (s serverAPI) GetById(ctx context.Context, req *postGrpc.GetByIdRequest) (*
 	return dto.ToPbPostDetail(*post), nil
 }
 func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostRequest) (*postGrpc.PostDetail, error) {
-
+	fmt.Println("Received create post request:", req)
 	postDetail, err := s.service.Create(models.PostCreate{
 		Title:    req.Title,
 		AuthorId: req.AuthorId,
-		Type:     req.Type.String(),
+		Type:     int(req.Type),
 		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {
@@ -71,6 +72,7 @@ func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostReque
 	postDetail, err := s.service.Update(models.PostUpdate{
 		Id:       req.Id,
 		Title:    req.Title,
+		Type:     int(req.Type),
 		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {

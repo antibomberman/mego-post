@@ -27,10 +27,10 @@ func (r *postContentFileRepository) Find(postContentId string) ([]models.PostCon
 func (r *postContentFileRepository) Create(create models.PostContentFileCreate) (string, error) {
 	query := `
         INSERT INTO post_content_files (post_content_id, file_name, content_type)
-        VALUES ($1, $2, $3, $4) RETURNING id;
+        VALUES ($1, $2, $3) RETURNING id;
     `
 	id := ""
-	err := r.db.QueryRowx(query, create.PostContentId, create.FileName, create.ContentType).Scan(&id)
+	err := r.db.QueryRow(query, create.PostContentId, create.FileName, create.ContentType).Scan(&id)
 	if err != nil {
 		return "", err
 	}
