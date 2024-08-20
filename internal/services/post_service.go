@@ -5,6 +5,7 @@ import (
 	"context"
 	pb "github.com/antibomberman/mego-protos/gen/go/storage"
 	"log"
+	"sync"
 	"time"
 
 	"antibomberman/mego-post/internal/clients"
@@ -61,9 +62,15 @@ func (p *postService) Find(pageSize int, pageToken, sort, search string, fromDat
 	}
 
 	postDetails := make([]models.PostDetail, len(posts))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(posts))
 	for i, post := range posts {
-		postDetails[i] = *p.buildPostDetail(post)
+		go func(i int, post models.Post) {
+			defer wg.Done()
+			postDetails[i] = *p.buildPostDetail(post)
+		}(i, post)
 	}
+	wg.Wait()
 	return postDetails, nextPageToken, nil
 }
 func (p *postService) GetByAuthor(authorId string, pageSize int, pageToken, sort string) ([]models.PostDetail, string, error) {
@@ -93,9 +100,15 @@ func (p *postService) GetByAuthor(authorId string, pageSize int, pageToken, sort
 	}
 
 	postDetails := make([]models.PostDetail, len(posts))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(posts))
 	for i, post := range posts {
-		postDetails[i] = *p.buildPostDetail(post)
+		go func(i int, post models.Post) {
+			defer wg.Done()
+			postDetails[i] = *p.buildPostDetail(post)
+		}(i, post)
 	}
+	wg.Wait()
 
 	return postDetails, nextPageToken, nil
 }
@@ -279,16 +292,21 @@ func (p *postService) getMediaContents(postId string) ([]models.PostContentWithF
 	}
 
 	mediaContents := make([]models.PostContentWithFile, len(contents))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(contents))
 	for i, content := range contents {
-		mediaContentFiles, err := p.getMediaContentFiles(content.Id)
-		if err != nil {
-			log.Printf("Error getting media content files for content %s: %v", content.Id, err)
-			continue
-		}
-		mediaContents[i] = models.PostContentWithFile{
-			PostContentFiles: mediaContentFiles,
-		}
+		go func(i int, content models.PostContent) {
+			defer wg.Done()
+			mediaContentFiles, err := p.getMediaContentFiles(content.Id)
+			if err != nil {
+				log.Printf("Error getting media content files for content %s: %v", content.Id, err)
+			}
+			mediaContents[i] = models.PostContentWithFile{
+				PostContentFiles: mediaContentFiles,
+			}
+		}(i, content)
 	}
+	wg.Wait()
 	return mediaContents, nil
 }
 
@@ -298,19 +316,26 @@ func (p *postService) getMediaContentFiles(contentId string) ([]models.PostConte
 		return nil, err
 	}
 	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(contentFiles))
 	for i, contentFile := range contentFiles {
-		rsp, err := p.storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
-			FileName: contentFile.FileName,
-		})
-		if err != nil {
-			log.Printf("Error getting object url for file %s: %v", contentFile.FileName, err)
-			continue
-		}
-		mediaContentFiles[i] = models.PostContentFile{
-			FileName:    contentFile.FileName,
-			ContentType: contentFile.ContentType,
-			Url:         rsp.Url,
-		}
+
+		go func(i int, contentFile models.PostContentFile) {
+			wg.Done()
+			rsp, err := p.storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
+				FileName: contentFile.FileName,
+			})
+			if err != nil {
+				log.Printf("Error getting object url for file %s: %v", contentFile.FileName, err)
+				return
+			}
+			mediaContentFiles[i] = models.PostContentFile{
+				FileName:    contentFile.FileName,
+				ContentType: contentFile.ContentType,
+				Url:         rsp.Url,
+			}
+		}(i, contentFile)
 	}
+	wg.Wait()
 	return mediaContentFiles, nil
 }

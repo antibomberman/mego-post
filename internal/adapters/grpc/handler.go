@@ -14,12 +14,10 @@ import (
 
 func (s serverAPI) FindPost(ctx context.Context, req *postGrpc.FindPostRequest) (*postGrpc.FindPostResponse, error) {
 	var dateFrom, dateTo *time.Time
-
 	if req.DateFrom != nil {
 		dateFromValue := req.DateFrom.AsTime()
 		dateFrom = &dateFromValue
 	}
-
 	if req.DateTo != nil {
 		dateToValue := req.DateTo.AsTime()
 		dateTo = &dateToValue
