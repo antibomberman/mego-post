@@ -330,8 +330,8 @@ func (p *postService) getMediaContentFiles(contentId string) ([]models.PostConte
 				return
 			}
 			mediaContentFiles[i] = models.PostContentFile{
-				FileName:    contentFile.FileName,
-				ContentType: contentFile.ContentType,
+				FileName:    rsp.FileName,
+				ContentType: rsp.ContentType,
 				Url:         rsp.Url,
 			}
 		}(i, contentFile)

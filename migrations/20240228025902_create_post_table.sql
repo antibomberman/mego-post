@@ -3,9 +3,9 @@
 CREATE TABLE IF NOT EXISTS posts
 (
     id         SERIAL PRIMARY KEY,
-    title      TEXT,
     author_id    INTEGER,
     type    INTEGER default 1,
+    image varchar(255),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
