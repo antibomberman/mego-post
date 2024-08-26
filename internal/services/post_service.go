@@ -3,7 +3,6 @@ package services
 import (
 	"antibomberman/mego-post/internal/dto"
 	"context"
-	pb "github.com/antibomberman/mego-protos/gen/go/storage"
 	"log"
 	"sync"
 	"time"
@@ -12,26 +11,25 @@ import (
 	"antibomberman/mego-post/internal/models"
 	"antibomberman/mego-post/internal/repositories"
 	"antibomberman/mego-post/pkg/utils"
+	storagePb "github.com/antibomberman/mego-protos/gen/go/storage"
 	userPb "github.com/antibomberman/mego-protos/gen/go/user"
 )
 
 type postService struct {
-	postRepository            repositories.PostRepository
-	postContentRepository     repositories.PostContentRepository
-	postContentFileRepository repositories.PostContentFileRepository
-	userClient                *clients.UserClient
-	storageClient             *clients.StorageClient
-	favoriteClient            *clients.FavoriteClient
+	postRepository        repositories.PostRepository
+	postContentRepository repositories.PostContentRepository
+	userClient            *clients.UserClient
+	storageClient         *clients.StorageClient
+	favoriteClient        *clients.FavoriteClient
 }
 
-func NewPostService(postRepo repositories.PostRepository, postContentRepo repositories.PostContentRepository, postContentFileRepo repositories.PostContentFileRepository, userClient *clients.UserClient, storageClient *clients.StorageClient, favoriteClient *clients.FavoriteClient) PostService {
+func NewPostService(postRepo repositories.PostRepository, postContentRepo repositories.PostContentRepository, userClient *clients.UserClient, storageClient *clients.StorageClient, favoriteClient *clients.FavoriteClient) PostService {
 	return &postService{
-		postRepository:            postRepo,
-		postContentRepository:     postContentRepo,
-		postContentFileRepository: postContentFileRepo,
-		userClient:                userClient,
-		storageClient:             storageClient,
-		favoriteClient:            favoriteClient,
+		postRepository:        postRepo,
+		postContentRepository: postContentRepo,
+		userClient:            userClient,
+		storageClient:         storageClient,
+		favoriteClient:        favoriteClient,
 	}
 }
 
@@ -126,30 +124,14 @@ func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error)
 		return nil, err
 	}
 	for _, dataContent := range data.Contents {
-		postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
-			PostId:  postId,
-			Title:   dataContent.Title,
-			Content: dataContent.Content,
+		_, err := p.postContentRepository.Create(models.PostContentCreate{
+			PostId:      postId,
+			Title:       dataContent.Title,
+			Description: dataContent.Description,
+			File:        dataContent.File,
 		})
 		if err != nil {
 			return nil, err
-		}
-		for _, file := range dataContent.Files {
-			object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Data: file.Data, ContentType: file.ContentType})
-			if err != nil {
-				log.Printf("Error uploading file %s: %v", file.FileName, err)
-				return nil, err
-			}
-
-			_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
-				PostContentId: postContentId,
-				FileName:      object.FileName,
-				ContentType:   file.ContentType,
-			})
-			if err != nil {
-				log.Printf("Error creating post content file: %v", err)
-				return nil, err
-			}
 		}
 	}
 
@@ -165,31 +147,20 @@ func (p *postService) Update(data models.PostUpdate) (*models.PostDetail, error)
 		return nil, err
 	}
 	for _, dataContent := range data.Contents {
-		postContentId, err := p.postContentRepository.Create(models.PostContentCreate{
-			PostId:  data.Id,
-			Title:   dataContent.Title,
-			Content: dataContent.Content,
+		_, err := p.postContentRepository.Create(models.PostContentCreate{
+			PostId:      data.Id,
+			Title:       dataContent.Title,
+			Description: dataContent.Description,
+			File: models.FileCreate{
+				FileName:    dataContent.File.FileName,
+				ContentType: dataContent.File.ContentType,
+				Data:        dataContent.File.Data,
+			},
 		})
 		if err != nil {
 			return nil, err
 		}
-		for _, file := range dataContent.Files {
-			object, err := p.storageClient.PutObject(context.Background(), &pb.PutObjectRequest{FileName: file.FileName, Data: file.Data, ContentType: file.ContentType})
-			if err != nil {
-				log.Printf("Error uploading file %s: %v", file.FileName, err)
-				return nil, err
-			}
 
-			_, err = p.postContentFileRepository.Create(models.PostContentFileCreate{
-				PostContentId: postContentId,
-				FileName:      object.FileName,
-				ContentType:   file.ContentType,
-			})
-			if err != nil {
-				log.Printf("Error creating post content file: %v", err)
-				return nil, err
-			}
-		}
 	}
 
 	return p.GetById(data.Id)
@@ -214,33 +185,15 @@ func (p *postService) deletePostContents(postId string) error {
 		return err
 	}
 	for _, postContent := range postContents {
-		err := p.deletePostContentFiles(postContent.Id)
+		_, err := p.storageClient.DeleteObject(context.Background(), &storagePb.DeleteObjectRequest{
+			FileName: postContent.File.FileName,
+		})
 		if err != nil {
-			log.Printf("Error deleting post content files for post %s: %v", postContent.Id, err)
-			continue
+			log.Printf("Error deleting storage object %s: %v", postContent.File.FileName, err)
 		}
 		err = p.postContentRepository.Delete(postContent.Id)
 		if err != nil {
 			log.Printf("Error deleting post content %s: %v", postContent.Id, err)
-		}
-	}
-	return nil
-}
-func (p *postService) deletePostContentFiles(postContentId string) error {
-	postContentFiles, err := p.postContentFileRepository.Find(postContentId)
-	if err != nil {
-		return err
-	}
-	for _, postContentFile := range postContentFiles {
-		_, err := p.storageClient.DeleteObject(context.Background(), &pb.DeleteObjectRequest{FileName: postContentFile.FileName})
-		if err != nil {
-			log.Printf("Error deleting file %s: %v", postContentFile.FileName, err)
-			continue
-		}
-		err = p.postContentFileRepository.Delete(postContentFile.Id)
-		if err != nil {
-			log.Printf("Error deleting post content file %s: %v", postContentFile.Id, err)
-			continue
 		}
 	}
 	return nil
@@ -254,12 +207,10 @@ func (p *postService) buildPostDetail(post models.Post) *models.PostDetail {
 
 	return &models.PostDetail{
 		Id:           post.Id,
-		Title:        post.Title,
 		Contents:     mediaContents,
 		Author:       p.buildPostAuthorDetail(post.AuthorId),
 		CommentCount: 0,
 		LikeCount:    0,
-		RepostCount:  0,
 		ViewCount:    0,
 		CreatedAt:    &post.CreatedAt.Time,
 		UpdatedAt:    &post.UpdatedAt.Time,
@@ -285,57 +236,10 @@ func (p *postService) buildPostAuthorDetail(authorId string) models.Author {
 	}
 }
 
-func (p *postService) getMediaContents(postId string) ([]models.PostContentWithFile, error) {
+func (p *postService) getMediaContents(postId string) ([]models.PostContent, error) {
 	contents, err := p.postContentRepository.Find(postId)
 	if err != nil {
-		return []models.PostContentWithFile{}, err
+		return []models.PostContent{}, err
 	}
-
-	mediaContents := make([]models.PostContentWithFile, len(contents))
-	wg := &sync.WaitGroup{}
-	wg.Add(len(contents))
-	for i, content := range contents {
-		go func(i int, content models.PostContent) {
-			defer wg.Done()
-			mediaContentFiles, err := p.getMediaContentFiles(content.Id)
-			if err != nil {
-				log.Printf("Error getting media content files for content %s: %v", content.Id, err)
-			}
-			mediaContents[i] = models.PostContentWithFile{
-				PostContentFiles: mediaContentFiles,
-			}
-		}(i, content)
-	}
-	wg.Wait()
-	return mediaContents, nil
-}
-
-func (p *postService) getMediaContentFiles(contentId string) ([]models.PostContentFile, error) {
-	contentFiles, err := p.postContentFileRepository.Find(contentId)
-	if err != nil {
-		return nil, err
-	}
-	mediaContentFiles := make([]models.PostContentFile, len(contentFiles))
-	wg := &sync.WaitGroup{}
-	wg.Add(len(contentFiles))
-	for i, contentFile := range contentFiles {
-
-		go func(i int, contentFile models.PostContentFile) {
-			wg.Done()
-			rsp, err := p.storageClient.GetObjectUrl(context.Background(), &pb.GetObjectUrlRequest{
-				FileName: contentFile.FileName,
-			})
-			if err != nil {
-				log.Printf("Error getting object url for file %s: %v", contentFile.FileName, err)
-				return
-			}
-			mediaContentFiles[i] = models.PostContentFile{
-				FileName:    rsp.FileName,
-				ContentType: rsp.ContentType,
-				Url:         rsp.Url,
-			}
-		}(i, contentFile)
-	}
-	wg.Wait()
-	return mediaContentFiles, nil
+	return contents, nil
 }

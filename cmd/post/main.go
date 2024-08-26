@@ -22,7 +22,6 @@ func main() {
 
 	postRepository := repositories.NewPostRepository(db)
 	postContentRepository := repositories.NewPostContentRepository(db)
-	postContentFileRepository := repositories.NewPostContentFileRepository(db)
 	userClient, err := clients.NewUserClient(cfg.UserServiceAddress)
 	storageClient, err := clients.NewStorageClient(cfg.StorageServiceAddress)
 	favoriteClient, err := clients.NewFavoriteClient(cfg.StorageServiceAddress)
@@ -30,7 +29,6 @@ func main() {
 	postService := services.NewPostService(
 		postRepository,
 		postContentRepository,
-		postContentFileRepository,
 		userClient,
 		storageClient,
 		favoriteClient,

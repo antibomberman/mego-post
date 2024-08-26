@@ -20,9 +20,3 @@ type PostContentRepository interface {
 	Create(create models.PostContentCreate) (id string, err error)
 	Delete(postId string) error
 }
-
-type PostContentFileRepository interface {
-	Find(string) ([]models.PostContentFile, error)
-	Create(models.PostContentFileCreate) (id string, err error)
-	Delete(id string) error
-}

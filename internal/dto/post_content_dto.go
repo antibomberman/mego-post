@@ -5,48 +5,33 @@ import (
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 )
 
-func ToPbPostContent(details []models.PostContentWithFile) []*postGrpc.PostContent {
+func ToPbPostContent(details []models.PostContent) []*postGrpc.PostContent {
 	pbContents := make([]*postGrpc.PostContent, 0, len(details))
 	for _, content := range details {
 		pbContents = append(pbContents, &postGrpc.PostContent{
-			Title:   content.Title,
-			Content: content.Content,
-			Files:   ToPbPostContentFiles(content.PostContentFiles),
+			Title:       content.Title,
+			Description: content.Description,
+			File: &postGrpc.File{
+				FileName:    content.File.FileName,
+				ContentType: content.File.ContentType,
+				Url:         content.File.Url,
+			},
 		})
 	}
 	return pbContents
-}
-func ToPbPostContentFiles(details []models.PostContentFile) []*postGrpc.PostContentFile {
-	pbFiles := make([]*postGrpc.PostContentFile, 0, len(details))
-	for _, file := range details {
-		pbFiles = append(pbFiles, &postGrpc.PostContentFile{
-			FileName:    file.FileName,
-			ContentType: file.ContentType,
-			Url:         file.Url,
-		})
-	}
-	return pbFiles
-}
-
-func ToPostContentFileCreate(detail []*postGrpc.PostContentFileCreateOrUpdate) []models.PostContentFileCreate {
-	files := make([]models.PostContentFileCreate, 0, len(detail))
-	for _, file := range detail {
-		files = append(files, models.PostContentFileCreate{
-			FileName:    file.FileName,
-			ContentType: file.ContentType,
-			Data:        file.Data,
-		})
-	}
-	return files
 }
 
 func ToPostContentCreateOrUpdate(detail []*postGrpc.PostContentCreateOrUpdate) []models.PostContentCreateOrUpdate {
 	files := make([]models.PostContentCreateOrUpdate, 0, len(detail))
 	for _, reqPostContent := range detail {
 		files = append(files, models.PostContentCreateOrUpdate{
-			Title:   reqPostContent.Title,
-			Content: reqPostContent.Content,
-			Files:   ToPostContentFileCreate(reqPostContent.Files),
+			Title:       reqPostContent.Title,
+			Description: reqPostContent.Description,
+			File: models.FileCreate{
+				FileName:    reqPostContent.File.FileName,
+				ContentType: reqPostContent.File.ContentType,
+				Data:        reqPostContent.File.Data,
+			},
 		})
 	}
 	return files
