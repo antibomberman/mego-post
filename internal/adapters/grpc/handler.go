@@ -60,7 +60,8 @@ func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostReque
 			ContentType: req.Image.ContentType,
 			Data:        req.Image.Data,
 		},
-		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
+		Contents:   dto.ToPostContentCreateOrUpdate(req.Contents),
+		Categories: dto.ToCategoriesCreateOrUpdate(req.Categories),
 	})
 	if err != nil {
 		log.Printf("Error creating post: %v", err)

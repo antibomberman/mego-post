@@ -36,3 +36,17 @@ func ToPostContentCreateOrUpdate(detail []*postGrpc.PostContentCreateOrUpdate) [
 	}
 	return files
 }
+func ToCategoriesCreateOrUpdate(detail []*postGrpc.Category) []models.Category {
+	categories := make([]models.Category, 0, len(detail))
+	for _, reqPostContent := range detail {
+		categories = append(categories, models.Category{
+			Name: reqPostContent.Name,
+			Icon: models.File{
+				FileName:    reqPostContent.Icon.FileName,
+				ContentType: reqPostContent.Icon.ContentType,
+				Url:         reqPostContent.Icon.Url,
+			},
+		})
+	}
+	return categories
+}

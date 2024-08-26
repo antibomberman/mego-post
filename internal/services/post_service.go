@@ -124,7 +124,15 @@ func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error)
 		return nil, err
 	}
 	for _, dataContent := range data.Contents {
-		_, err := p.postContentRepository.Create(models.PostContentCreate{
+		_, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
+			FileName:    dataContent.File.FileName,
+			ContentType: dataContent.File.ContentType,
+			Data:        dataContent.File.Data,
+		})
+		if err != nil {
+			return nil, err
+		}
+		_, err = p.postContentRepository.Create(models.PostContentCreate{
 			PostId:      postId,
 			Title:       dataContent.Title,
 			Description: dataContent.Description,

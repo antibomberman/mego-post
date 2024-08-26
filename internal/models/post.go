@@ -31,10 +31,11 @@ type PostDetail struct {
 }
 
 type PostCreate struct {
-	AuthorId string                      `json:"author_id" db:"author_id"`
-	Type     int                         `json:"type" db:"type"`
-	Image    FileCreate                  `json:"image" db:"image"`
-	Contents []PostContentCreateOrUpdate `json:"contents" db:"contents"`
+	AuthorId   string                      `json:"author_id" db:"author_id"`
+	Type       int                         `json:"type" db:"type"`
+	Image      FileCreate                  `json:"image" db:"image"`
+	Contents   []PostContentCreateOrUpdate `json:"contents" db:"contents"`
+	Categories []Category                  `json:"categories" db:"categories"`
 }
 type PostUpdate struct {
 	Id       string                      `db:"id" json:"id"`
