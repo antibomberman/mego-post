@@ -40,6 +40,7 @@ func ToCategoriesCreateOrUpdate(detail []*postGrpc.Category) []models.Category {
 	categories := make([]models.Category, 0, len(detail))
 	for _, reqPostContent := range detail {
 		categories = append(categories, models.Category{
+			Id:   reqPostContent.Id,
 			Name: reqPostContent.Name,
 			Icon: models.File{
 				FileName:    reqPostContent.Icon.FileName,

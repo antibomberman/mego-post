@@ -24,11 +24,11 @@ func (r *postContentRepository) Find(postId string) ([]models.PostContent, error
 	return postContent, nil
 }
 
-func (r *postContentRepository) Create(postContent models.PostContentCreate) (id string, err error) {
+func (r *postContentRepository) Create(postId, Title, description, FileName string) (id string, err error) {
 	query := `
-        INSERT INTO post_contents (post_id, title, description) VALUES ($1, $2, $3) RETURNING id;
+        INSERT INTO post_contents (post_id, title, description,image) VALUES ($1, $2, $3,$4) RETURNING id;
     `
-	err = r.db.QueryRow(query, postContent.PostId, postContent.Title, postContent.Description).Scan(&id)
+	err = r.db.QueryRow(query, postId, Title, description, FileName).Scan(&id)
 	return id, err
 }
 func (r *postContentRepository) Delete(id string) error {
