@@ -122,7 +122,7 @@ func (p *postService) GetById(id string) (*models.PostDetail, error) {
 
 func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error) {
 	//upload main image
-	if data.Image.Data != nil {
+	if data.Image.FileName != "" {
 		rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
 			FileName:    data.Image.FileName,
 			ContentType: data.Image.ContentType,
@@ -139,15 +139,20 @@ func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error)
 		return nil, err
 	}
 	for _, dataContent := range data.Contents {
-		rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
-			FileName:    dataContent.File.FileName,
-			ContentType: dataContent.File.ContentType,
-			Data:        dataContent.File.Data,
-		})
-		if err != nil {
-			return nil, err
+		imageName := ""
+		if dataContent.File.FileName != "" {
+			rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
+				FileName:    dataContent.File.FileName,
+				ContentType: dataContent.File.ContentType,
+				Data:        dataContent.File.Data,
+			})
+			if err != nil {
+				return nil, err
+			}
+			imageName = rsp.FileName
 		}
-		_, err = p.postContentRepository.Create(postId, dataContent.Title, dataContent.Description, rsp.FileName)
+
+		_, err = p.postContentRepository.Create(postId, dataContent.Title, dataContent.Description, imageName)
 		if err != nil {
 			return nil, err
 		}

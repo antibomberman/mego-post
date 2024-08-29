@@ -42,11 +42,7 @@ func ToCategoriesCreateOrUpdate(detail []*postGrpc.Category) []models.Category {
 		categories = append(categories, models.Category{
 			Id:   reqPostContent.Id,
 			Name: reqPostContent.Name,
-			Icon: models.File{
-				FileName:    reqPostContent.Icon.FileName,
-				ContentType: reqPostContent.Icon.ContentType,
-				Url:         reqPostContent.Icon.Url,
-			},
+			Icon: reqPostContent.Icon.FileName,
 		})
 	}
 	return categories
