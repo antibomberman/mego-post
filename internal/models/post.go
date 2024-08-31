@@ -16,12 +16,12 @@ type Post struct {
 }
 
 type PostDetail struct {
-	Id         string            `json:"id"`
-	Author     Author            `json:"author"`
-	Type       int               `json:"type"`
-	Image      File              `json:"image"`
-	Contents   []PostContent     `json:"contents"`
-	Categories []CategoryDetails `json:"categories"`
+	Id         string               `json:"id"`
+	Author     Author               `json:"author"`
+	Type       int                  `json:"type"`
+	Image      *File                `json:"image"`
+	Contents   []PostContentDetails `json:"contents"`
+	Categories []CategoryDetails    `json:"categories"`
 
 	CommentCount int `json:"comment_count"`
 	LikeCount    int `json:"like_count"`
@@ -35,14 +35,14 @@ type PostDetail struct {
 type PostCreate struct {
 	AuthorId   string                      `json:"author_id" db:"author_id"`
 	Type       int                         `json:"type" db:"type"`
-	Image      FileCreate                  `json:"image" db:"image"`
+	Image      *FileCreate                 `json:"image" db:"image"`
 	Contents   []PostContentCreateOrUpdate `json:"contents" db:"contents"`
 	Categories []string                    `json:"categories" db:"categories"`
 }
 type PostUpdate struct {
 	Id         string                      `db:"id" json:"id"`
 	Type       int                         `db:"type" json:"type"`
-	Image      FileCreate                  `json:"image" db:"image"`
+	Image      *FileCreate                 `json:"image" db:"image"`
 	Contents   []PostContentCreateOrUpdate `json:"contents"`
 	Categories []string                    `json:"categories" db:"categories"`
 }

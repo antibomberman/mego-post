@@ -5,16 +5,17 @@ import (
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 )
 
-func ToPbPostContent(details []models.PostContent) []*postGrpc.PostContent {
+func ToPbPostContent(details []models.PostContentDetails) []*postGrpc.PostContent {
 	pbContents := make([]*postGrpc.PostContent, 0, len(details))
 	for _, content := range details {
+
 		pbContents = append(pbContents, &postGrpc.PostContent{
 			Title:       content.Title,
 			Description: content.Description,
-			File: &postGrpc.File{
-				FileName:    content.File.FileName,
-				ContentType: content.File.ContentType,
-				Url:         content.File.Url,
+			Image: &postGrpc.File{
+				FileName:    content.Image.FileName,
+				ContentType: content.Image.ContentType,
+				Url:         content.Image.Url,
 			},
 		})
 	}
@@ -24,14 +25,16 @@ func ToPbPostContent(details []models.PostContent) []*postGrpc.PostContent {
 func ToPostContentCreateOrUpdate(detail []*postGrpc.PostContentCreateOrUpdate) []models.PostContentCreateOrUpdate {
 	files := make([]models.PostContentCreateOrUpdate, 0, len(detail))
 	for _, reqPostContent := range detail {
+		image := models.FileCreate{}
+		if reqPostContent.File != nil {
+			image.FileName = reqPostContent.File.FileName
+			image.ContentType = reqPostContent.File.ContentType
+			image.Data = reqPostContent.File.Data
+		}
 		files = append(files, models.PostContentCreateOrUpdate{
 			Title:       reqPostContent.Title,
 			Description: reqPostContent.Description,
-			File: models.FileCreate{
-				FileName:    reqPostContent.File.FileName,
-				ContentType: reqPostContent.File.ContentType,
-				Data:        reqPostContent.File.Data,
-			},
+			Image:       &image,
 		})
 	}
 	return files

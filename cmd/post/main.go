@@ -35,6 +35,10 @@ func main() {
 		storageClient,
 		favoriteClient,
 	)
+	categoryService := services.NewCategoryService(
+		categoryRepository,
+		storageClient,
+	)
 
 	log.Printf("Starting gRPC server on port %s", cfg.PostServiceServerPort)
 	l, err := net.Listen("tcp", ":"+cfg.PostServiceServerPort)
@@ -42,7 +46,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	gRPC := grpc.NewServer()
-	adapter.Register(gRPC, cfg, postService)
+	adapter.Register(gRPC, cfg, postService, categoryService)
 	if err := gRPC.Serve(l); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

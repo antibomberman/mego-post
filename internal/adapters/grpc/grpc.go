@@ -9,13 +9,15 @@ import (
 
 type serverAPI struct {
 	postGrpc.UnimplementedPostServiceServer
-	service services.PostService
-	cfg     *config.Config
+	service         services.PostService
+	categoryService services.CategoryService
+	cfg             *config.Config
 }
 
-func Register(gRPC *grpc.Server, cfg *config.Config, service services.PostService) {
+func Register(gRPC *grpc.Server, cfg *config.Config, service services.PostService, categoryService services.CategoryService) {
 	postGrpc.RegisterPostServiceServer(gRPC, &serverAPI{
-		service: service,
-		cfg:     cfg,
+		service:         service,
+		categoryService: categoryService,
+		cfg:             cfg,
 	})
 }

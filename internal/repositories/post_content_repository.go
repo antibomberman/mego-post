@@ -17,7 +17,7 @@ func NewPostContentRepository(db *sqlx.DB) PostContentRepository {
 
 func (r *postContentRepository) Find(postId string) ([]models.PostContent, error) {
 	var postContent []models.PostContent
-	err := r.db.Select(&postContent, "SELECT id,title,content FROM post_contents WHERE post_id = $1", postId)
+	err := r.db.Select(&postContent, "SELECT id,title,description,image FROM post_contents WHERE post_id = $1", postId)
 	if err != nil {
 		return []models.PostContent{}, err
 	}

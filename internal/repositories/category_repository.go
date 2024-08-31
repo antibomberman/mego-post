@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"antibomberman/mego-post/internal/models"
+	"database/sql"
+	"errors"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,11 +19,21 @@ func NewCategoryRepository(db *sqlx.DB) CategoryRepository {
 
 func (r *categoryRepository) Find() ([]models.Category, error) {
 	var categories []models.Category
-	err := r.db.Select(&categories, "SELECT id,name,icon FROM categories")
+	err := r.db.Select(&categories, "SELECT id,name,icon FROM categories ORDER BY name ASC")
 	if err != nil {
 		return []models.Category{}, err
 	}
 	return categories, nil
+}
+func (r *categoryRepository) GetById(id string) (models.Category, error) {
+	var category models.Category
+	query := "SELECT id, name, icon FROM categories WHERE id = $1"
+	err := r.db.Get(&category, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.Category{}, nil
+	}
+	return category, nil
+
 }
 
 func (r *categoryRepository) Create(name, FileName string) (id string, err error) {
@@ -30,6 +42,11 @@ func (r *categoryRepository) Create(name, FileName string) (id string, err error
     `
 	err = r.db.QueryRow(query, name, FileName).Scan(&id)
 	return id, err
+}
+func (r *categoryRepository) Update(id, name, FileName string) error {
+	query := "UPDATE categories SET name=$1, icon=$2 WHERE id=$3"
+	err := r.db.QueryRow(query, name, FileName, id).Err()
+	return err
 }
 func (r *categoryRepository) Delete(id string) error {
 	query := "DELETE FROM categories WHERE id = $1"

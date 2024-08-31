@@ -4,17 +4,19 @@ type PostContent struct {
 	Id          string `db:"id" json:"id"`
 	Title       string `db:"title" json:"title"`
 	Description string `db:"description" json:"description"`
-	File        File   `db:"file" json:"file"`
+	Image       string `db:"image" json:"image"`
 }
-type PostContentCreate struct {
-	PostId      string     `db:"post_id" json:"post_id"`
-	Title       string     `db:"title" json:"title"`
-	Description string     `db:"description" json:"description"`
-	File        FileCreate `db:"file" json:"file"`
+
+type PostContentDetails struct {
+	Id          string `db:"id" json:"id"`
+	Title       string `db:"title" json:"title"`
+	Description string `db:"description" json:"description"`
+	Image       *File  `db:"image" json:"image"`
 }
 
 type PostContentCreateOrUpdate struct {
-	Title       string     `db:"title" json:"title"`
-	Description string     `db:"description" json:"description"`
-	File        FileCreate `db:"file" json:"file"`
+	PostId      string      `db:"post_id" json:"post_id"`
+	Title       string      `db:"title" json:"title"`
+	Description string      `db:"description" json:"description"`
+	Image       *FileCreate `db:"image" json:"image"`
 }

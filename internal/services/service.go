@@ -15,3 +15,11 @@ type PostService interface {
 }
 type PostContentService interface {
 }
+
+type CategoryService interface {
+	Find() ([]models.CategoryDetails, error)
+	Create(models.CategoryCreate) (*models.CategoryDetails, error)
+	Update(models.CategoryUpdate) (*models.CategoryDetails, error)
+	GetById(string) (*models.CategoryDetails, error)
+	Delete(string) error
+}

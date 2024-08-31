@@ -122,15 +122,19 @@ func (p *postService) GetById(id string) (*models.PostDetail, error) {
 
 func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error) {
 	//upload main image
-	if data.Image.FileName != "" {
+	if data.Image != nil && data.Image.FileName != "" {
+		log.Printf("Uploading main image: %s", data.Image.FileName)
+
 		rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
 			FileName:    data.Image.FileName,
 			ContentType: data.Image.ContentType,
 			Data:        data.Image.Data,
 		})
 		if err != nil {
+			log.Printf("Error uploading main image: %v", err)
 			return nil, err
 		}
+		log.Println(rsp)
 		data.Image.FileName = rsp.FileName
 	}
 
@@ -140,11 +144,11 @@ func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error)
 	}
 	for _, dataContent := range data.Contents {
 		imageName := ""
-		if dataContent.File.FileName != "" {
+		if dataContent.Image.FileName != "" {
 			rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
-				FileName:    dataContent.File.FileName,
-				ContentType: dataContent.File.ContentType,
-				Data:        dataContent.File.Data,
+				FileName:    dataContent.Image.FileName,
+				ContentType: dataContent.Image.ContentType,
+				Data:        dataContent.Image.Data,
 			})
 			if err != nil {
 				return nil, err
@@ -192,9 +196,9 @@ func (p *postService) Update(data models.PostUpdate) (*models.PostDetail, error)
 	}
 	for _, dataContent := range data.Contents {
 		rsp, err := p.storageClient.PutObject(context.Background(), &storagePb.PutObjectRequest{
-			FileName:    dataContent.File.FileName,
-			ContentType: dataContent.File.ContentType,
-			Data:        dataContent.File.Data,
+			FileName:    dataContent.Image.FileName,
+			ContentType: dataContent.Image.ContentType,
+			Data:        dataContent.Image.Data,
 		})
 		if err != nil {
 			return nil, err
@@ -245,10 +249,10 @@ func (p *postService) deletePostContents(postId string) error {
 	}
 	for _, postContent := range postContents {
 		_, err := p.storageClient.DeleteObject(context.Background(), &storagePb.DeleteObjectRequest{
-			FileName: postContent.File.FileName,
+			FileName: postContent.Image,
 		})
 		if err != nil {
-			log.Printf("Error deleting storage object %s: %v", postContent.File.FileName, err)
+			log.Printf("Error deleting storage object %s: %v", postContent.Image, err)
 		}
 		err = p.postContentRepository.Delete(postContent.Id)
 		if err != nil {
@@ -263,12 +267,26 @@ func (p *postService) buildPostDetail(post models.Post) *models.PostDetail {
 	if err != nil {
 		log.Printf("Error getting media contents for post %s: %v", post.Id, err)
 	}
+	image := models.File{}
+	if post.Image != "" {
+		rsp, err := p.storageClient.GetObjectUrl(context.Background(), &storagePb.GetObjectUrlRequest{
+			FileName: post.Image,
+		})
+		if err != nil {
+			log.Printf("Error getting storage object %s: %v", post.Image, err)
+		}
+		image.Url = rsp.Url
+		image.FileName = rsp.FileName
+		image.ContentType = rsp.ContentType
+
+	}
 
 	return &models.PostDetail{
 		Id:           post.Id,
 		Contents:     mediaContents,
 		Categories:   p.buildCategoryDetail(post.Id),
 		Author:       p.buildPostAuthorDetail(post.AuthorId),
+		Image:        &image,
 		CommentCount: 0,
 		LikeCount:    0,
 		ViewCount:    0,
@@ -316,7 +334,7 @@ func (p *postService) buildCategoryDetail(postId string) []models.CategoryDetail
 		categoryDetail := models.CategoryDetails{
 			Id:   category.Id,
 			Name: category.Name,
-			Icon: *file,
+			Icon: file,
 		}
 		categoryDetails = append(categoryDetails, categoryDetail)
 	}
@@ -324,10 +342,32 @@ func (p *postService) buildCategoryDetail(postId string) []models.CategoryDetail
 
 }
 
-func (p *postService) getMediaContents(postId string) ([]models.PostContent, error) {
+func (p *postService) getMediaContents(postId string) ([]models.PostContentDetails, error) {
 	contents, err := p.postContentRepository.Find(postId)
 	if err != nil {
-		return []models.PostContent{}, err
+		return []models.PostContentDetails{}, err
 	}
-	return contents, nil
+	var contentDetails []models.PostContentDetails
+	for _, content := range contents {
+		log.Printf("storage object %s", content.Image)
+		image := models.File{}
+		if content.Image != "" {
+			rsp, err := p.storageClient.GetObjectUrl(context.Background(), &storagePb.GetObjectUrlRequest{
+				FileName: content.Image,
+			})
+			if err == nil {
+				image.FileName = rsp.FileName
+				image.ContentType = rsp.ContentType
+				image.Url = rsp.Url
+			}
+		}
+		contentDetail := models.PostContentDetails{
+			Id:          content.Id,
+			Title:       content.Title,
+			Description: content.Description,
+			Image:       &image,
+		}
+		contentDetails = append(contentDetails, contentDetail)
+	}
+	return contentDetails, nil
 }

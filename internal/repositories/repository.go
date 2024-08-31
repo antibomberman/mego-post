@@ -24,8 +24,10 @@ type PostContentRepository interface {
 type CategoryRepository interface {
 	Find() ([]models.Category, error)
 	Create(name, FileName string) (id string, err error)
+	Update(id, name, FileName string) (err error)
 	Delete(id string) error
 	ByPostId(postId string) ([]models.Category, error)
+	GetById(id string) (models.Category, error)
 	AddToPost(postId string, ids []string) error
 	RemoveFromPost(postId string) error
 }

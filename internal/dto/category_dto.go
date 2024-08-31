@@ -5,18 +5,22 @@ import (
 	postGrpc "github.com/antibomberman/mego-protos/gen/go/post"
 )
 
-func ToPbCategory(details []models.CategoryDetails) []*postGrpc.Category {
+func ToPbCategories(details []models.CategoryDetails) []*postGrpc.Category {
 	pbContents := make([]*postGrpc.Category, 0, len(details))
 	for _, category := range details {
-		pbContents = append(pbContents, &postGrpc.Category{
-			Id:   category.Id,
-			Name: category.Name,
-			Icon: &postGrpc.File{
-				FileName:    category.Icon.FileName,
-				ContentType: category.Icon.ContentType,
-				Url:         category.Icon.Url,
-			},
-		})
+		pbContents = append(pbContents, ToPbCategory(category))
 	}
 	return pbContents
+}
+
+func ToPbCategory(details models.CategoryDetails) *postGrpc.Category {
+	return &postGrpc.Category{
+		Id:   details.Id,
+		Name: details.Name,
+		Icon: &postGrpc.File{
+			FileName:    details.Icon.FileName,
+			ContentType: details.Icon.ContentType,
+			Url:         details.Icon.Url,
+		},
+	}
 }

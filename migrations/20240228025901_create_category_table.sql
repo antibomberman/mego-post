@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS categories
 (
     id         SERIAL PRIMARY KEY,
     name       VARCHAR(255) NOT NULL UNIQUE,
-    image varchar(255)
+    icon varchar(255)
 
 );
 -- +goose StatementEnd

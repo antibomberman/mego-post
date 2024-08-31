@@ -52,14 +52,16 @@ func (s serverAPI) GetById(ctx context.Context, req *postGrpc.GetByIdRequest) (*
 	return dto.ToPbPostDetail(*post), nil
 }
 func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostRequest) (*postGrpc.PostDetail, error) {
+	image := models.FileCreate{}
+	if req.Image != nil {
+		image.FileName = req.Image.FileName
+		image.ContentType = req.Image.ContentType
+		image.Data = req.Image.Data
+	}
 	postDetail, err := s.service.Create(models.PostCreate{
-		AuthorId: req.AuthorId,
-		Type:     int(req.Type),
-		Image: models.FileCreate{
-			FileName:    req.Image.FileName,
-			ContentType: req.Image.ContentType,
-			Data:        req.Image.Data,
-		},
+		AuthorId:   req.AuthorId,
+		Type:       int(req.Type),
+		Image:      &image,
 		Contents:   dto.ToPostContentCreateOrUpdate(req.Contents),
 		Categories: req.Categories,
 	})
@@ -70,14 +72,16 @@ func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostReque
 	return dto.ToPbPostDetail(*postDetail), nil
 }
 func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostRequest) (*postGrpc.PostDetail, error) {
+	image := models.FileCreate{}
+	if req.Image != nil {
+		image.FileName = req.Image.FileName
+		image.ContentType = req.Image.ContentType
+		image.Data = req.Image.Data
+	}
 	postDetail, err := s.service.Update(models.PostUpdate{
-		Id:   req.Id,
-		Type: int(req.Type),
-		Image: models.FileCreate{
-			FileName:    req.Image.FileName,
-			ContentType: req.Image.ContentType,
-			Data:        req.Image.Data,
-		},
+		Id:       req.Id,
+		Type:     int(req.Type),
+		Image:    &image,
 		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {

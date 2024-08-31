@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"antibomberman/mego-post/internal/models"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	"strconv"
 	"time"
@@ -44,10 +43,6 @@ func (r *postRepository) Find(startIndex int, size int, sort string, search stri
 		query += " ORDER BY created_at DESC"
 	}
 	query += " OFFSET $1 LIMIT $2"
-
-	fmt.Println(query)
-	fmt.Println(startIndex)
-	fmt.Println(size)
 	err := r.db.Select(&posts, query, startIndex, size)
 	if err != nil {
 		return nil, err
