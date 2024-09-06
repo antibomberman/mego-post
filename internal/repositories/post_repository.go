@@ -91,10 +91,10 @@ func (r *postRepository) GetById(id string) (models.Post, error) {
 	return post, nil
 }
 
-func (r *postRepository) Create(AuthorId string, Type int, FileName string) (string, error) {
+func (r *postRepository) Create(AuthorId string, Type int, FileName, Title, Description string) (string, error) {
 	var id int64
 
-	err := r.db.QueryRow("INSERT INTO posts (author_id, type,image) VALUES ($1, $2, $3) RETURNING id", AuthorId, Type, FileName).Scan(&id)
+	err := r.db.QueryRow("INSERT INTO posts (author_id, type,image,title,description) VALUES ($1, $2, $3, $4, $5) RETURNING id", AuthorId, Type, FileName, Title, Description).Scan(&id)
 	if err != nil {
 		return "", err
 	}
@@ -110,8 +110,8 @@ func (r *postRepository) Delete(id, authorId string) error {
 	return nil
 }
 
-func (r *postRepository) Update(id string, Type int, FileName string) error {
-	_, err := r.db.Exec("UPDATE posts SET type = $2, image = $3,updated_at = $4 WHERE id = $1;", id, Type, FileName, time.Now())
+func (r *postRepository) Update(id string, Type int, FileName, Title, Description string) error {
+	_, err := r.db.Exec("UPDATE posts SET type = $2, image = $3,title = $4,description = $5,updated_at = $6 WHERE id = $1;", id, Type, FileName, Title, Description, time.Now())
 	if err != nil {
 		return err
 	}

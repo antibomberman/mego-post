@@ -1,9 +1,9 @@
-FROM golang:1.22.5
+FROM golang:1.22.5-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN go mod tidy
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o post cmd/post/main.go
-RUN chmod +x ./post
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o post cmd/post/main.go
 
-CMD ["./post"]
+FROM scratch
+COPY --from=builder /app/ .
+CMD ["/post"]

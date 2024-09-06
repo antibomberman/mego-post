@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mego-post
+    container_name: mego_post
     depends_on:
       - postgres
       - redis

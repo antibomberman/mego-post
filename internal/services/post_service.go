@@ -138,7 +138,7 @@ func (p *postService) Create(data models.PostCreate) (*models.PostDetail, error)
 		data.Image.FileName = rsp.FileName
 	}
 
-	postId, err := p.postRepository.Create(data.AuthorId, data.Type, data.Image.FileName)
+	postId, err := p.postRepository.Create(data.AuthorId, data.Type, data.Image.FileName, data.Title, data.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (p *postService) Update(data models.PostUpdate) (*models.PostDetail, error)
 		}
 		data.Image.FileName = rsp.FileName
 	}
-	err := p.postRepository.Update(data.Id, data.Type, data.Image.FileName)
+	err := p.postRepository.Update(data.Id, data.Type, data.Image.FileName, data.Title, data.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -272,12 +272,11 @@ func (p *postService) buildPostDetail(post models.Post) *models.PostDetail {
 		rsp, err := p.storageClient.GetObjectUrl(context.Background(), &storagePb.GetObjectUrlRequest{
 			FileName: post.Image,
 		})
-		if err != nil {
-			log.Printf("Error getting storage object %s: %v", post.Image, err)
+		if err == nil {
+			image.Url = rsp.Url
+			image.FileName = rsp.FileName
+			image.ContentType = rsp.ContentType
 		}
-		image.Url = rsp.Url
-		image.FileName = rsp.FileName
-		image.ContentType = rsp.ContentType
 
 	}
 

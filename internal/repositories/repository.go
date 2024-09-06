@@ -9,9 +9,9 @@ type PostRepository interface {
 	Find(startIndex int, size int, sort string, search string, dateFrom *time.Time, dateTo *time.Time) ([]models.Post, error)
 	GetByAuthor(authorId string, startIndex int, size int, sort string) ([]models.Post, error)
 	GetById(string) (models.Post, error)
-	Create(AuthorId string, Type int, FileName string) (string, error)
+	Create(AuthorId string, Type int, FileName, Title, Description string) (string, error)
 	Delete(id, authorId string) error
-	Update(id string, Type int, FileName string) error
+	Update(id string, Type int, FileName, Title, Description string) error
 	CountByAuthor(string) (int, error)
 }
 

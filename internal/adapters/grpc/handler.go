@@ -59,11 +59,13 @@ func (s serverAPI) CreatePost(ctx context.Context, req *postGrpc.CreatePostReque
 		image.Data = req.Image.Data
 	}
 	postDetail, err := s.service.Create(models.PostCreate{
-		AuthorId:   req.AuthorId,
-		Type:       int(req.Type),
-		Image:      &image,
-		Contents:   dto.ToPostContentCreateOrUpdate(req.Contents),
-		Categories: req.Categories,
+		AuthorId:    req.AuthorId,
+		Type:        int(req.Type),
+		Title:       req.Title,
+		Description: req.Description,
+		Image:       &image,
+		Contents:    dto.ToPostContentCreateOrUpdate(req.Contents),
+		Categories:  req.Categories,
 	})
 	if err != nil {
 		log.Printf("Error creating post: %v", err)
@@ -79,10 +81,12 @@ func (s serverAPI) UpdatePost(ctx context.Context, req *postGrpc.UpdatePostReque
 		image.Data = req.Image.Data
 	}
 	postDetail, err := s.service.Update(models.PostUpdate{
-		Id:       req.Id,
-		Type:     int(req.Type),
-		Image:    &image,
-		Contents: dto.ToPostContentCreateOrUpdate(req.Contents),
+		Id:          req.Id,
+		Type:        int(req.Type),
+		Title:       req.Title,
+		Description: req.Description,
+		Image:       &image,
+		Contents:    dto.ToPostContentCreateOrUpdate(req.Contents),
 	})
 	if err != nil {
 		log.Printf("Error updating post: %v", err)

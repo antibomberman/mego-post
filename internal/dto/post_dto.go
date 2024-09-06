@@ -15,15 +15,17 @@ func ToPbPostDetail(details models.PostDetail) *postGrpc.PostDetail {
 		image.ContentType = details.Image.ContentType
 	}
 	pbUserDetails := &postGrpc.PostDetail{
-		Id:         details.Id,
-		Type:       postGrpc.PostType(details.Type),
-		Image:      image,
-		CreatedAt:  timestamppb.New(*details.CreatedAt),
-		UpdatedAt:  timestamppb.New(*details.UpdatedAt),
-		DeletedAt:  timestamppb.New(*details.DeletedAt),
-		Author:     ToPbAuthorDetail(details.Author),
-		Contents:   ToPbPostContent(details.Contents),
-		Categories: ToPbCategories(details.Categories),
+		Id:          details.Id,
+		Type:        postGrpc.PostType(details.Type),
+		Title:       details.Title,
+		Description: details.Description,
+		Image:       image,
+		CreatedAt:   timestamppb.New(*details.CreatedAt),
+		UpdatedAt:   timestamppb.New(*details.UpdatedAt),
+		DeletedAt:   timestamppb.New(*details.DeletedAt),
+		Author:      ToPbAuthorDetail(details.Author),
+		Contents:    ToPbPostContent(details.Contents),
+		Categories:  ToPbCategories(details.Categories),
 	}
 	return pbUserDetails
 }

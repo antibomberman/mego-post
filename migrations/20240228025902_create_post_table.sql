@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS posts
     author_id    INTEGER,
     type    INTEGER default 1,
     image varchar(255),
+    title varchat(400),
+    description text,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
